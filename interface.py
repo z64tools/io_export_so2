@@ -26,10 +26,11 @@ class UI_PT_Collection(bpy.types.Panel):
         return context.collection != context.scene.collection
     
     def draw(self, context):
+        collection = context.collection
+        data = collection.ocarina
+
         box = self.layout.box()
-        box.label(text="Wow")
-        box.label(text="Wow")
-        box.label(text="Wow")
+        box.prop(data, "meshType")
 
 classes = (
     UI_PT_Mesh,

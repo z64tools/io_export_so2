@@ -19,7 +19,7 @@
 # <pep8-80 compliant>
 
 bl_info = {
-    "name": "SOTM",
+    "name": "SharpOcarina Addon",
     "author": "Rankaisija, Campbell Barton, Bastien Montagne",
     "version": (1, 0, 0),
     "blender": (3, 0, 0),
@@ -32,17 +32,57 @@ bl_info = {
 import os
 import bpy
 
+from pathlib import Path
 from . import export
 from . import properties
 from . import interface
 
+def reload_all_modules(log=False):
+    global modules
+
+    import importlib
+
+    # the global variable "modules" is kept for the next reload
+    if "modules" not in globals():
+        if log:
+            print('"modules" not in globals()')
+
+        modules = dict()
+
+    addon_dir = Path(__file__).parent
+
+    if log:
+        print("__file__ =", __file__)
+        print("addon_dir =", addon_dir)
+
+    for py_path in addon_dir.glob("**/*.py"):
+        if py_path == Path(__file__):
+            continue
+
+        py_path = py_path.relative_to(addon_dir)
+        if py_path.name == "__init__.py":
+            n = "." + ".".join(py_path.parent.parts)
+        else:
+            n = "." + ".".join((*py_path.parent.parts, py_path.name.removesuffix(".py")))
+
+        if n in modules:
+            if log:
+                print(f"importlib.reload(modules[n={n!r}])")
+
+            importlib.reload(modules[n])
+        else:
+            if log:
+                print(f"modules[n={n!r}] = importlib.import_module(n={n!r}, __package__={__package__!r})")
+
+            modules[n] = importlib.import_module(n, __package__)
+
 
 def register():
-    print("Register Export")
+    reload_all_modules()
+    Path(__file__).touch()
+
     export.register()
-    print("Register Properties")
     properties.register()
-    print("Register Interface")
     interface.register()
 
     print("OK!")
@@ -52,6 +92,8 @@ def unregister():
     export.unregister()
     properties.unregister()
     interface.unregister()
+
+    Path(__file__).touch()
 
 
 if __name__ == "__main__":
