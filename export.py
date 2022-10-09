@@ -801,7 +801,7 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
     group_by_material: BoolProperty(
         name="Material Groups",
         description="Generate an OBJ group for each part of a geometry using a different material",
-        default=False,
+        default=True,
     )
     group_name_use_collection: BoolProperty(
         name="Collection in Group Name",
