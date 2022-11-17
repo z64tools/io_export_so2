@@ -1,5 +1,3 @@
-from cmath import exp
-from symbol import term
 import bpy
 from . import properties
 
