@@ -17,74 +17,71 @@ class Properties_Scene(bpy.types.PropertyGroup):
 class Properties_Collision(bpy.types.PropertyGroup):
     sound_type: bpy.props.EnumProperty(
         items=[
-            ("#SFX_0",          "Dirt",          ""),
-            ("#SFX_1",          "Sand",          ""),
-            ("#SFX_2",          "Stone",         ""),
-            ("#SFX_3",          "WetStone",      ""),
-            ("#SFX_4",          "Water",         ""),
-            ("#SFX_5",          "Shallow Water", ""),
-            ("#SFX_6",          "Bush",          ""),
-            ("#SFX_7",          "Lava",          ""),
-            ("#SFX_8",          "Grass",         ""),
-            ("#SFX_9",          "Wood",          ""),
-            ("#SFX_A",          "Plank Wood",    ""),
-            ("#SFX_C",          "Ice",           ""),
-            ("#SFX_D",          "Carpet",        ""),
-
-            ("#SFX_8",          "0x08",          ""),
-            ("#SFX_E",          "0x0E",          ""),
-            ("#SFX_F",          "0x0F",          ""),
+            ("#SFX_0",          "Dirt",          "0x00"),
+            ("#SFX_1",          "Sand",          "0x01"),
+            ("#SFX_2",          "Stone",         "0x02"),
+            ("#SFX_3",          "WetStone",      "0x03"),
+            ("#SFX_4",          "Water",         "0x04"),
+            ("#SFX_5",          "Shallow Water", "0x05"),
+            ("#SFX_6",          "Bush",          "0x06"),
+            ("#SFX_7",          "Lava",          "0x07"),
+            ("#SFX_8",          "Grass",         "0x08"),
+            ("#SFX_9",          "Plank Wood",    "0x09"),
+            ("#SFX_A",          "Wood",          "0x0A"),   
+            ("#SFX_C",          "Ice",           "0x0C"),
+            ("#SFX_D",          "Carpet",        "0x0D"),
+            ("#SFX_B",          "0x0B",          "0x0B"),
+            ("#SFX_E",          "0x0E",          "0x0E"),
+            ("#SFX_F",          "0x0F",          "0x0F"),
         ],
         default="#SFX_0",
         name="Sound"
     )
 
-    has_floor_flags: bpy.props.BoolProperty(default=False,name="Wall")
+    has_floor_flags: bpy.props.BoolProperty(default=False,name="Floor")
     floor_flags: bpy.props.EnumProperty(
         items=[
-            ("#FLOOR_VOID_SMALL",        "Small Void",        ""),
-            ("#FLOOR_HANG_LEDGE",        "Hand Ledge",        ""),
-            ("#FLOOR_STOP_AIR_MOMENTUM", "Stop Air Momentym", ""),
-            ("#FLOOR_NO_LEDGE_JUMP",     "No Ledge Jump",     ""),
-            ("#FLOOR_DIVE",              "Dive",              ""),
-            ("#FLOOR_VOID",              "Void",              ""),
+            ("#FLOORPROPERTY_VOID_SMALL",        "Small Void",        ""),
+            ("#FLOORPROPERTY_HANG_LEDGE",        "Hand Ledge",        ""),
+            ("#FLOORPROPERTY_STOP_AIR_MOMENTUM", "Stop Air Momentym", ""),
+            ("#FLOORPROPERTY_NO_LEDGE_JUMP",     "No Ledge Jump",     ""),
+            ("#FLOORPROPERTY_DIVE",              "Dive",              ""),
+            ("#FLOORPROPERTY_VOID",              "Void",              ""),
         ],
-        default="#FLOOR_VOID_SMALL",
+        default="#FLOORPROPERTY_VOID_SMALL",
         name=""
     )
 
-    has_wall_flags: bpy.props.BoolProperty(default=False,name="Floor")
+    has_wall_flags: bpy.props.BoolProperty(default=False,name="Wall")
     wall_flags: bpy.props.EnumProperty(
         items=[
-            ("#WALL_NO_LEDGE_GRAP", "No Ledge Grab", ""),
-            ("#WALL_LADDER",        "Ladder",        ""),
-            ("#WALL_LADDER_TOP",    "Ladder Top",    ""),
-            ("#WALL_VINE",          "Climbable",     ""),
-            ("#WALL_CRAWL_A",       "Crawl A",       ""),
-            ("#WALL_CRAWL_B",       "Crawl B",       ""),
-            ("#WALL_PUSH",          "Push",          ""),
+            ("#WALLPROPERTY_NO_LEDGE_GRAB", "No Ledge Grab", ""),
+            ("#WALLPROPERTY_LADDER",        "Ladder",        ""),
+            ("#WALLPROPERTY_LADDER_TOP",    "Ladder Top",    ""),
+            ("#WALLPROPERTY_VINE",          "Climbable",     ""),
+            ("#WALLPROPERTY_CRAWL_A",       "Crawl A",       ""),
+            ("#WALLPROPERTY_CRAWL_B",       "Crawl B",       ""),
+            ("#WALLPROPERTY_PUSH",          "Push",          ""),
         ],
-        default="#WALL_NO_LEDGE_GRAP",
+        default="#WALLPROPERTY_NO_LEDGE_GRAB",
         name=""
     ) 
 
     has_special_flags: bpy.props.BoolProperty(default=False,name="Special")
     special_flags: bpy.props.EnumProperty(
         items=[
-            # ("#BEHAVIOUR_UNK_1",           "", ""),
-            ("#BEHAVIOUR_HURT_SPIKES",     "Hurt",              ""),
-            ("#BEHAVIOUR_HURT_LAVA",       "Hurt (Lava)",       ""),
-            ("#BEHAVIOUR_SAND",            "Sand",              ""),
-            ("#BEHAVIOUR_SLIPPERY",        "Slippery",          ""),
-            ("#BEHAVIOUR_NO_FALL_DAMAGE",  "No Fall Damage",    ""),
-            ("#BEHAVIOUR_QUICKSAND",       "Quicksand",         ""),
-            ("#BEHAVIOUR_JABU_WALL",       "Jabu Wall",         ""),
-            ("#BEHAVIOUR_VOID_ON_CONTACT", "Void on Contact",   ""),
-            # ("#BEHAVIOUR_UNK_A",           "", ""),
-            ("#BEHAVIOUR_LOOK_UP",         "Look Up",           ""),
-            ("#BEHAVIOUR_QUICKSAND_EPONA", "Quicksand (Epona)", ""),
+            ("#FLOORSPECIAL_HURT_SPIKES",     "Hurt",              ""),
+            ("#FLOORSPECIAL_HURT_LAVA",       "Hurt (Lava)",       ""),
+            ("#FLOORSPECIAL_SAND",            "Sand",              ""),
+            ("#FLOORSPECIAL_SLIPPERY",        "Slippery",          ""),
+            ("#FLOORSPECIAL_NO_FALL_DAMAGE",  "No Fall Damage",    ""),
+            ("#FLOORSPECIAL_QUICKSAND",       "Quicksand",         ""),
+            ("#FLOORSPECIAL_JABU_WALL",       "Jabu Wall",         ""),
+            ("#FLOORSPECIAL_VOID_ON_CONTACT", "Void on Contact",   ""),
+            ("#FLOORSPECIAL_LINK_LOOK_UP",    "Look Up",           ""),
+            ("#FLOORSPECIAL_QUICKSAND_EPONA", "Quicksand (Epona)", ""),
         ],
-        default="#BEHAVIOUR_HURT_SPIKES",
+        default="#FLOORSPECIAL_HURT_SPIKES",
         name=""
     )
 
@@ -121,7 +118,7 @@ class Properties_Material(bpy.types.PropertyGroup):
         default=False,
         update=node_setup.on_material_image_update
     )
-    is_mesh: bpy.props.BoolProperty(default=True, name="Mesh", description="#NoCollision")
+    is_mesh: bpy.props.BoolProperty(default=True, name="Mesh", description="#NoCollision", update=node_setup.on_material_disable_mesh)
     is_collision: bpy.props.BoolProperty(default=True, name="Collision", description="#NoMesh")
 
     texture_0: bpy.props.PointerProperty(

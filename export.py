@@ -134,6 +134,33 @@ def write_file_material_info(object:bpy.types.Object, material_name:str, scene:b
 
     data = material.ocarina
 
+    if data.is_collision:
+        collision:properties.Properties_Collision = data.collision
+        result = (result + collision.sound_type)
+
+        if collision.has_wall_flags:
+            result = (result + collision.wall_flags)
+        if collision.has_floor_flags:
+            result = (result + collision.floor_flags)
+        if collision.has_special_flags:
+            result = (result + collision.special_flags)
+        if collision.conveyor_speed != "#Speed0":
+            result = (result + collision.conveyor_speed)
+        if collision.has_camera:
+            result = (result + "#%X" % (collision.camera - 1))
+        if collision.has_env:
+            result = (result + "#%X" % (collision.env - 1))
+        if collision.has_exit:
+            result = (result + "#%X" % (collision.exit - 1))
+        if collision.hookshot:
+            result = (result + "#Hookshot")
+        if collision.ignore_cam:
+            result = (result + "#IgnoreCamera")
+        if collision.ignore_actor:
+            result = (result + "#IgnoreActors")
+        if collision.ignore_proj:
+            result = (result + "#IgnoreProjectiles")
+
     if data.is_mesh == True and data.is_collision != True:
         result = (result + "#NoCollision")
     elif data.is_mesh != True and data.is_collision == True:

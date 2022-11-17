@@ -102,12 +102,18 @@ class UI_PT_Material(bpy.types.Panel):
                     row.prop(xmaterial, "pixelated")
                     row.prop(xmaterial, "decal")
                 sub_box.separator(factor=0.0)
-
         
         if getattr(xmaterial, "is_collision") == True:
             box = self.layout.box()
 
             if self.foldable_menu(box, xscene, "ui_show_collision"):
+                if xmaterial.is_mesh == False:
+                    row = box.row()
+                    color = material.node_tree.nodes["SMH Principled BSDF"].inputs[0]
+                    alpha = material.node_tree.nodes["SMH Principled BSDF"].inputs[21]
+                    row.prop(color, "default_value", text="")
+                    row.prop(alpha, "default_value", text="")
+
                 box.prop(xcollision, "sound_type")
 
                 self.dependant_row_prop(box, xcollision, "has_floor_flags", "floor_flags")
@@ -130,9 +136,6 @@ class UI_PT_Material(bpy.types.Panel):
                 if xcollision.conveyor_speed == "#Speed0":
                     row.enabled = False
                 row.prop(xcollision, "waterstream")
-
-
-
 
 classes = (
     UI_PT_Material,

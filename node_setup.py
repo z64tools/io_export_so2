@@ -459,7 +459,7 @@ def set_simple_material_image(
 ):
     nodes.image.image = props.texture_0
 
-    if props.texture_0 is None:
+    if props.texture_0 is None or mat.ocarina.is_mesh == False:
         mat.node_tree.links.remove(nodes.shader_node.inputs["Base Color"].links[0])
         nodes.shader_node.inputs["Base Color"].default_value = 1, 0, 0, 1
         mat.node_tree.links.remove(nodes.shader_node.inputs["Alpha"].links[0])
@@ -531,3 +531,17 @@ def on_material_update_pixelating(self, context):
         shader_mixer_node.interpolation = "Closest"
     else:
         shader_mixer_node.interpolation = "Linear"
+
+def on_material_disable_mesh(self, context):
+    material: bpy.types.Material = context.material
+    data: properties.Properties_Material = material.ocarina
+    nodes = ensure_setup_and_get_nodes(material)
+
+    set_simple_material_image(material, nodes, data)
+
+    if data.is_mesh:
+        material.blend_method = data.alpha_method
+    else:
+        nodes.shader_node.inputs["Base Color"].default_value = 0.82, 0.55, 0.35, 1
+        material.blend_method = "BLEND"
+        nodes.shader_node.inputs["Alpha"].default_value = 0.05
