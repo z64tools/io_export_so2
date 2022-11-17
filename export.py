@@ -122,6 +122,58 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                 )
                 fw("map_Kd %s\n" % repr(filepath)[1:-1])
 
+from . import properties
+
+def write_file_material_info(object:bpy.types.Object, material_name:str, scene:bpy.types.Scene) -> str:
+    result:str = ""
+    material = bpy.data.materials[material_name]
+    data:properties.Properties_Material
+
+    if hasattr(material, "ocarina") == False:
+        return result
+
+    data = material.ocarina
+
+    if data.is_mesh == True and data.is_collision != True:
+        result = (result + "#NoCollision")
+    elif data.is_mesh != True and data.is_collision == True:
+        result = (result + "#NoMesh")
+
+    if data.culling == False:
+        result = (result + "#BackfaceCulling")
+
+    if data.ignore_fog:
+        result = (result + "#IgnoreFog")
+
+    if data.decal:
+        result = (result + "#Decal")
+
+    if data.pixelated:
+        result = (result + "#Pixelated")
+    
+    if data.alpha < 255 or data.alpha_method == "BLEND":
+        alpha = data.alpha
+        if alpha == 255:
+            alpha = 254
+        result = (result + "#Alpha%X" % alpha)
+
+    if data.shading == "VERTEX":
+        result = (result + "#ReverseLight")
+
+    if data.uv_repeat_u == "MIRROR":
+        result = (result + "#MirrorX")
+    elif data.uv_repeat_u == "CLAMP":
+        result = (result + "#ClampX")
+
+    if data.uv_repeat_v == "MIRROR":
+        result = (result + "#MirrorY")
+    elif data.uv_repeat_v == "CLAMP":
+        result = (result + "#ClampY")
+    
+    if data.is_animated:
+        result = (result + "#%s" % str(data.segment))
+
+    return result
 
 def write_file(
     filepath,
@@ -179,9 +231,7 @@ def write_file(
         else:
             return "(null)"
 
-    with ProgressReportSubstep(
-        progress, 2, "OBJ Export path: %r" % filepath, "OBJ Export Finished"
-    ) as subprogress1:
+    with ProgressReportSubstep(progress, 2, "OBJ Export path: %r" % filepath, "OBJ Export Finished") as subprogress1:
         with open(filepath, "w", encoding="utf8", newline="\n") as f:
             fw = f.write
 
@@ -252,7 +302,6 @@ def write_file(
 
                     for collection in parent_collections:
                         if prev_collection is not None:
-                            obj_group_name_collection_prefix += "#"
                             if collection in prev_collection.children.values():
                                 obj_group_name_collection_prefix += "."
                             else:
@@ -358,13 +407,10 @@ def write_file(
 
                         obj_group_name_base = name_compat(ob.name)
 
-                        if ob.data.name != ob.name:
-                            obj_group_name_base += "#__" + name_compat(ob.data.name)
-
                         if EXPORT_GROUP_NAME_USE_COLLECTION:
                             obj_group_name_base = (
                                 obj_group_name_collection_prefix
-                                + "#__"
+                                + "#_"
                                 + obj_group_name_base
                             )
 
@@ -550,13 +596,11 @@ def write_file(
 
                                     if EXPORT_GROUP_BY_MAT:
                                         # can be mat_image or (null)
-                                        fw(
-                                            "g %s#__%s\n"
-                                            % (
-                                                obj_group_name_base,
-                                                mat_data[0],
-                                            )
-                                        )
+                                        fw("g %s_%s" % (obj_group_name_base,mat_data[0],))
+
+                                        fw(write_file_material_info(ob, mat_data[0], scene))
+
+                                        fw("\n")
                                     if EXPORT_MTL:
                                         fw(
                                             "usemtl %s\n" % mat_data[0]
@@ -732,7 +776,7 @@ def save(
         EXPORT_POLYGROUPS=use_vertex_groups,
         EXPORT_SEL_ONLY=use_selection,
         EXPORT_GLOBAL_MATRIX=global_matrix,
-        EXPORT_PATH_MODE=path_mode,
+        EXPORT_PATH_MODE="RELATIVE",
     )
 
     return {"FINISHED"}
@@ -740,8 +784,6 @@ def save(
 
 @orientation_helper(axis_forward="-Z", axis_up="Y")
 class ExportOBJ(bpy.types.Operator, ExportHelper):
-    """Save a Wavefront OBJ File"""
-
     bl_idname = "export_obj_so.export"
     bl_label = "Export OBJ SO"
     bl_options = {"PRESET"}

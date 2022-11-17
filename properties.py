@@ -155,16 +155,16 @@ class Properties_Material(bpy.types.PropertyGroup):
 
     segment: bpy.props.EnumProperty(
         items=[
-            ("SEG8", "Segment 8", ""),
-            ("SEG9", "Segment 9", ""),
-            ("SEGA", "Segment A", ""),
-            ("SEGB", "Segment B", ""),
-            ("SEGC", "Segment C", ""),
-            ("SEGD", "Segment D", ""),
-            ("SEGE", "Segment E", ""),
-            ("SEGF", "Segment F", ""),
+            ("Animated8", "Segment 8", ""),
+            ("Animated9", "Segment 9", ""),
+            ("AnimatedA", "Segment A", ""),
+            ("AnimatedB", "Segment B", ""),
+            ("AnimatedC", "Segment C", ""),
+            ("AnimatedD", "Segment D", ""),
+            ("AnimatedE", "Segment E", ""),
+            ("AnimatedF", "Segment F", ""),
         ],
-        default="SEG8",
+        default="Animated8",
         name=""
     )
 
