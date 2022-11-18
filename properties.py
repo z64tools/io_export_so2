@@ -143,7 +143,7 @@ class Properties_Material(bpy.types.PropertyGroup):
             ("SHADED", "Lighting", ""),
             ("VERTEX", "Vertex Color", ""),
         ],
-        default="VERTEX",
+        default="SHADED",
         name="Shading",
         update=node_setup.on_material_update_shading
     )
@@ -235,11 +235,11 @@ class Properties_Material(bpy.types.PropertyGroup):
     
     alpha_method: bpy.props.EnumProperty(
         items=[
-            ("OPAQUE", "Opaque",     ""),
-            ("CLIP",   "Clip Alpha", ""),
-            ("BLEND",  "Soft Alpha", ""),
+            # ("OPAQUE", "Opaque",     ""),
+            ("CLIP",   "Opaque",      ""),
+            ("BLEND",  "Transparent", ""),
         ],
-        default="OPAQUE",
+        default="CLIP",
         name="Blend Method",
         update=node_setup.on_material_use_transparency_update,
     )

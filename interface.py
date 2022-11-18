@@ -11,6 +11,7 @@ class UI_OT_MaterialInitializer(bpy.types.Operator):
         data: properties.Properties_Material = material.ocarina
 
         data.is_ocarina_material = True
+        data.alpha_method = "CLIP"
 
         return {'FINISHED'}
 
