@@ -147,11 +147,11 @@ def write_file_material_info(object:bpy.types.Object, material_name:str, scene:b
         if collision.conveyor_speed != "#Speed0":
             result = (result + collision.conveyor_speed)
         if collision.has_camera:
-            result = (result + "#%X" % (collision.camera - 1))
+            result = (result + "#Camera%02X" % (collision.camera))
         if collision.has_env:
-            result = (result + "#%X" % (collision.env - 1))
+            result = (result + "#IndoorEnv%02X" % (collision.env))
         if collision.has_exit:
-            result = (result + "#%X" % (collision.exit - 1))
+            result = (result + "#Exit%02X" % (collision.exit))
         if collision.hookshot:
             result = (result + "#Hookshot")
         if collision.ignore_cam:
@@ -184,8 +184,8 @@ def write_file_material_info(object:bpy.types.Object, material_name:str, scene:b
             alpha = 254
         result = (result + "#Alpha%X" % alpha)
 
-    if data.shading == "VERTEX":
-        result = (result + "#ReverseLight")
+    # if data.shading == "VERTEX":
+    #     result = (result + "#ReverseLight")
 
     if data.uv_repeat_u == "MIRROR":
         result = (result + "#MirrorX")

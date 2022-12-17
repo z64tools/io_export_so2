@@ -86,13 +86,13 @@ class Properties_Collision(bpy.types.PropertyGroup):
     )
 
     has_exit: bpy.props.BoolProperty(default=False,name="ExitID")
-    exit: bpy.props.IntProperty(default=1,min=1,max=32,name="")
+    exit: bpy.props.IntProperty(default=0,min=0,max=31,name="")
 
     has_env: bpy.props.BoolProperty(default=False,name="EnvID")
-    env: bpy.props.IntProperty(default=1,min=1,max=32,name="")
+    env: bpy.props.IntProperty(default=0,min=0,max=31,name="")
 
     has_camera: bpy.props.BoolProperty(default=False,name="CameraID")
-    camera: bpy.props.IntProperty(default=1,min=1,max=256,name="")
+    camera: bpy.props.IntProperty(default=0,min=0,max=255,name="")
 
     conveyor_dir: bpy.props.FloatProperty(default=0,min=0,max=1.0,name="Dir")
     conveyor_speed: bpy.props.EnumProperty(
@@ -143,7 +143,7 @@ class Properties_Material(bpy.types.PropertyGroup):
             ("SHADED", "Lighting", ""),
             ("VERTEX", "Vertex Color", ""),
         ],
-        default="SHADED",
+        default="VERTEX",
         name="Shading",
         update=node_setup.on_material_update_shading
     )
