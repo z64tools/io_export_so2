@@ -125,6 +125,9 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
 from . import properties
 
 def write_file_material_info(object:bpy.types.Object, material_name:str, scene:bpy.types.Scene) -> str:
+    if material_name == "None":
+        return ""
+
     result:str = ""
     material = bpy.data.materials[material_name]
     data:properties.Properties_Material
