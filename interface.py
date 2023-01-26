@@ -1,6 +1,52 @@
 import bpy
 from . import properties
 
+def get_icon(attr):
+        if attr:
+            return 'DOWNARROW_HLT'
+        else:
+            return 'RIGHTARROW'
+
+def foldable_menu(element, data, attr):
+    element.prop(data, attr, icon=get_icon(getattr(data, attr)), emboss=False)
+    if getattr(data, attr) == True:
+        return True
+    return False
+
+def dependant_row_prop(element: bpy.types.UILayout, data, setter, value, disabler_value = False):
+    row = element.row()
+    row.prop(data, setter)
+    col = row.column()
+    if getattr(data, setter) == disabler_value:
+        col.enabled = False
+    col.prop(data, value)
+
+def draw_collision_params(xcol:properties.Properties_Collision, box:bpy.types.UILayout, is_obj:bool):
+    if not is_obj:
+        box.prop(xcol, "sound_type")
+
+    dependant_row_prop(box, xcol, "has_floor_flags", "floor_flags")
+    dependant_row_prop(box, xcol, "has_wall_flags", "wall_flags")
+    dependant_row_prop(box, xcol, "has_special_flags", "special_flags")
+    dependant_row_prop(box, xcol, "has_exit", "exit")
+    dependant_row_prop(box, xcol, "has_env", "env")
+    dependant_row_prop(box, xcol, "has_camera", "camera")
+    
+    if not is_obj:
+        row = box.row()
+        row.prop(xcol, "hookshot")
+        row.prop(xcol, "ignore_cam")
+
+        row = box.row()
+        row.prop(xcol, "ignore_actor")
+        row.prop(xcol, "ignore_proj")
+
+    dependant_row_prop(box, xcol, "conveyor_speed", "conveyor_dir", "#Speed0")
+    row = box.row()
+    if xcol.conveyor_speed == "#Speed0":
+        row.enabled = False
+    row.prop(xcol, "waterstream")
+
 class UI_OT_MaterialInitializer(bpy.types.Operator):
     bl_idname = "ocarina.material_initializer"
     bl_label = 'Initialize material'
@@ -8,10 +54,35 @@ class UI_OT_MaterialInitializer(bpy.types.Operator):
 
     def execute(self, context):
         material = context.material
-        data: properties.Properties_Material = material.ocarina
+        object = context.object
+        mat_data: properties.Properties_Material = material.ocarina
+        obj_data: properties.Properties_Object = object.ocarina
 
-        data.is_ocarina_material = True
-        data.alpha_method = "CLIP"
+        obj_data.is_ocarina_object = True
+        mat_data.is_ocarina_material = True
+        mat_data.alpha_method = "CLIP"
+
+        return {'FINISHED'}
+
+class UI_OT_Refresh(bpy.types.Operator):
+    bl_idname = "ocarina.refresh"
+    bl_label = 'Refresh'
+    bl_options = {"INTERNAL", "UNDO"}
+
+    def execute(self, context):
+        
+        for object_name in context.scene.objects.items():
+            object = context.scene.objects[object_name[0]]
+
+            for material_name in object.material_slots.items():
+                material = bpy.data.materials[material_name[0]]
+                mat_data: properties.Properties_Material = material.ocarina
+                obj_data: properties.Properties_Object = object.ocarina
+
+                properties.node_setup.set_simple_material(material)
+
+                if mat_data.is_ocarina_material:
+                    obj_data.is_ocarina_object = True
 
         return {'FINISHED'}
 
@@ -25,26 +96,6 @@ class UI_PT_Material(bpy.types.Panel):
     def poll(self, context):
         material = context.material
         return material is not None
-    
-    def get_icon(self, attr):
-        if attr:
-            return 'DOWNARROW_HLT'
-        else:
-            return 'RIGHTARROW'
-    
-    def foldable_menu(self, element, data, attr):
-        element.prop(data, attr, icon=self.get_icon(getattr(data, attr)), emboss=False)
-        if getattr(data, attr) == True:
-            return True
-        return False
-    
-    def dependant_row_prop(self, element: bpy.types.UILayout, data, setter, value, disabler_value = False):
-        row = element.row()
-        row.prop(data, setter)
-        col = row.column()
-        if getattr(data, setter) == disabler_value:
-            col.enabled = False
-        col.prop(data, value)
     
     def draw(self, context):
         material = context.material
@@ -64,13 +115,10 @@ class UI_PT_Material(bpy.types.Panel):
         if getattr(xmaterial, "is_mesh") == True:
             box = self.layout.box()
 
-            if self.foldable_menu(box, xscene, "ui_show_mesh"):
+            if foldable_menu(box, xscene, "ui_show_mesh"):
 
                 row = box.row()
                 row.prop(xmaterial, "alpha_method", expand=True)
-
-                row = box.row()
-                row.prop(xmaterial, "shading", expand=True)
 
                 box.separator(factor=0.0)
 
@@ -84,16 +132,14 @@ class UI_PT_Material(bpy.types.Panel):
                         row = sub_box.row()
                         row.prop(xmaterial, "uv_repeat_u", text='', icon='EVENT_X')
                         row.prop(xmaterial, "uv_repeat_v", text='', icon='EVENT_Y')
-
-                    # if self.foldable_menu(sub_box, xscene, "ui_show_texture_params"):
-                    #     default_texture_draw()
-                    # else:
-                    #     default_texture_draw()
+                        row = sub_box.row()
+                        row.prop(xmaterial, "shift_x_0", text='')
+                        row.prop(xmaterial, "shift_y_0", text='')
                     
                     default_texture_draw()
                 
                 elif xscene.ui_material_tab == "MATERIAL":
-                    self.dependant_row_prop(sub_box, xmaterial, "is_animated", "segment")
+                    dependant_row_prop(sub_box, xmaterial, "is_animated", "segment")
                     sub_box.prop(xmaterial, "alpha", slider=True)
 
                     row = sub_box.row()
@@ -107,40 +153,56 @@ class UI_PT_Material(bpy.types.Panel):
         if getattr(xmaterial, "is_collision") == True:
             box = self.layout.box()
 
-            if self.foldable_menu(box, xscene, "ui_show_collision"):
+            if foldable_menu(box, xscene, "ui_show_collision"):
                 if xmaterial.is_mesh == False:
                     row = box.row()
-                    color = material.node_tree.nodes["SMH Principled BSDF"].inputs[0]
-                    alpha = material.node_tree.nodes["SMH Principled BSDF"].inputs[21]
+                    color = material.node_tree.nodes["SOShader"].inputs[0]
+                    alpha = material.node_tree.nodes["SOShader"].inputs[21]
                     row.prop(color, "default_value", text="")
                     row.prop(alpha, "default_value", text="")
-
-                box.prop(xcollision, "sound_type")
-
-                self.dependant_row_prop(box, xcollision, "has_floor_flags", "floor_flags")
-                self.dependant_row_prop(box, xcollision, "has_wall_flags", "wall_flags")
-                self.dependant_row_prop(box, xcollision, "has_special_flags", "special_flags")
-                self.dependant_row_prop(box, xcollision, "has_exit", "exit")
-                self.dependant_row_prop(box, xcollision, "has_env", "env")
-                self.dependant_row_prop(box, xcollision, "has_camera", "camera")
                 
-                row = box.row()
-                row.prop(xcollision, "hookshot")
-                row.prop(xcollision, "ignore_cam")
+                draw_collision_params(xcollision, box, False)
 
-                row = box.row()
-                row.prop(xcollision, "ignore_actor")
-                row.prop(xcollision, "ignore_proj")
+class UI_PT_3dview(bpy.types.Panel):
+    bl_category = "SharpOcarina"
+    bl_label = "SharpOcarina"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
 
-                self.dependant_row_prop(box, xcollision, "conveyor_speed", "conveyor_dir", "#Speed0")
-                row = box.row()
-                if xcollision.conveyor_speed == "#Speed0":
-                    row.enabled = False
-                row.prop(xcollision, "waterstream")
+    def draw_object(self:bpy.types.Panel, context:bpy.types.Context, box:bpy.types.UILayout):
+        object = context.object
+        scene = context.scene
+        obj_data:properties.Properties_Object = object.ocarina
+        xscene:properties.Properties_Scene = scene.ocarina
+
+        if foldable_menu(box, xscene, "ui_show_collision_3d"):
+            box.prop(obj_data, 'override')
+            box.separator()
+            draw_collision_params(obj_data, box, True)
+
+    def draw(self:bpy.types.Panel, context:bpy.types.Context):
+        object = context.object
+        obj_name = "none"
+
+        if object != None:
+            obj_name = object.name
+
+        box = self.layout.box()
+        box.operator('ocarina.refresh')
+        box.label(text="Object: " + obj_name)
+
+        if object != None and object.type == 'MESH':
+            obj_data:properties.Properties_Object = object.ocarina
+
+            if obj_data.is_ocarina_object:
+                self.draw_object(context, box.box())
 
 classes = (
-    UI_PT_Material,
     UI_OT_MaterialInitializer,
+    UI_OT_Refresh,
+
+    UI_PT_Material,
+    UI_PT_3dview,
 )
 
 def register():

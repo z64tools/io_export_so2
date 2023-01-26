@@ -2,6 +2,7 @@ import os
 import bpy
 from mathutils import Matrix, Vector, Color
 from bpy_extras import io_utils, node_shader_utils
+from . import properties
 
 from bpy_extras.wm_utils.progress_report import (
     ProgressReport,
@@ -62,65 +63,37 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
 
             image = None
 
-            # Attempt to find an image with PrincipledBSDFWrapper
+            if mat != None:
+                data:properties.Properties_Material = mat.ocarina
 
-            mat_wrap = node_shader_utils.PrincipledBSDFWrapper(mat) if mat else None
+                if data.is_ocarina_material:
+                    image = data.texture_0
+            
+                    if image is not None:
+                        filepath = io_utils.path_reference(
+                            image.filepath,
+                            source_dir,
+                            dest_dir,
+                            path_mode,
+                            "",
+                            copy_set,
+                            image.library,
+                        )
+                        fw("map_Kd %s\n" % repr(filepath)[1:-1])
 
-            if mat_wrap:
-                tex_wrap = getattr(mat_wrap, "base_color_texture", None)
-                if tex_wrap is not None:
-                    image = tex_wrap.image
+                    image = data.texture_1
 
-            # Attempt to find an image by exploring all nodes leading to output nodes
-            # If several images are found,
-            # use the image whose lower-case name comes first in lexical order
-
-            if image is None and mat and mat.use_nodes:
-                # nodes to explore next (start from output nodes)
-                next_explore_nodes = [
-                    node
-                    for node in mat.node_tree.nodes
-                    if node.bl_idname == "ShaderNodeOutputMaterial"
-                ]
-                # nodes that were already explored
-                explored_nodes = []
-                # images from all explored image nodes
-                images = []
-
-                while next_explore_nodes:
-                    explore_node = next_explore_nodes.pop()
-
-                    if explore_node in explored_nodes:
-                        continue
-
-                    if explore_node.bl_idname == "ShaderNodeTexImage":
-                        if explore_node.image is not None:
-                            images.append(explore_node.image)
-
-                    # add nodes linking to the inputs of the node being explored,
-                    # to the list of nodes to explore next
-                    for explore_node_input in explore_node.inputs.values():
-                        # Note: accessing node links like this is O(all links amount)
-                        for explore_node_input_link in explore_node_input.links:
-                            next_explore_nodes.append(explore_node_input_link.from_node)
-
-                    explored_nodes.append(explore_node)
-
-                if images:
-                    images.sort(key=lambda img: img.name.lower())
-                    image = images[0]
-
-            if image is not None:
-                filepath = io_utils.path_reference(
-                    image.filepath,
-                    source_dir,
-                    dest_dir,
-                    path_mode,
-                    "",
-                    copy_set,
-                    image.library,
-                )
-                fw("map_Kd %s\n" % repr(filepath)[1:-1])
+                    if image is not None:
+                        filepath = io_utils.path_reference(
+                            image.filepath,
+                            source_dir,
+                            dest_dir,
+                            path_mode,
+                            "",
+                            copy_set,
+                            image.library,
+                        )
+                        fw("map_Mt %s\n" % repr(filepath)[1:-1])
 
 from . import properties
 
@@ -130,78 +103,101 @@ def write_file_material_info(object:bpy.types.Object, material_name:str, scene:b
 
     result:str = ""
     material = bpy.data.materials[material_name]
-    data:properties.Properties_Material
 
     if hasattr(material, "ocarina") == False:
         return result
 
-    data = material.ocarina
+    mat_data:properties.Properties_Material = material.ocarina
+    obj_data:properties.Properties_Object = object.ocarina
 
-    if data.is_collision:
-        collision:properties.Properties_Collision = data.collision
-        result = (result + collision.sound_type)
+    if mat_data.is_collision:
+        mat_col:properties.Properties_Collision = mat_data.collision
+        result = (result + mat_col.sound_type)
+        arr = [
+            [ 0, "has_wall_flags",    "wall_flags",     "" ],
+            [ 0, "has_floor_flags",   "floor_flags",    "" ],
+            [ 0, "has_special_flags", "special_flags",  "" ],
+            [ 1, "conveyor_speed",    "conveyor_speed", "#Speed0" ],
+            [ 2, "has_camera",        "camera",         "#Camera" ],
+            [ 2, "has_env",           "env",            "#IndoorEnv" ],
+            [ 2, "has_exit",          "exit",           "#Exit" ],
+            [ 3, "hookshot",          "",               "#Hookshot"],
+            [ 3, "ignore_cam",        "",               "#IgnoreCamera"],
+            [ 3, "ignore_actor",      "",               "#IgnoreActors"],
+            [ 3, "ignore_proj",       "",               "#IgnoreProjectiles"],
+        ]
 
-        if collision.has_wall_flags:
-            result = (result + collision.wall_flags)
-        if collision.has_floor_flags:
-            result = (result + collision.floor_flags)
-        if collision.has_special_flags:
-            result = (result + collision.special_flags)
-        if collision.conveyor_speed != "#Speed0":
-            result = (result + collision.conveyor_speed)
-        if collision.has_camera:
-            result = (result + "#Camera%02X" % (collision.camera))
-        if collision.has_env:
-            result = (result + "#IndoorEnv%02X" % (collision.env))
-        if collision.has_exit:
-            result = (result + "#Exit%02X" % (collision.exit))
-        if collision.hookshot:
-            result = (result + "#Hookshot")
-        if collision.ignore_cam:
-            result = (result + "#IgnoreCamera")
-        if collision.ignore_actor:
-            result = (result + "#IgnoreActors")
-        if collision.ignore_proj:
-            result = (result + "#IgnoreProjectiles")
+        def read_flag(origin, type, check_attr, val_attr, param) -> str:
+            result = ""
 
-    if data.is_mesh == True and data.is_collision != True:
+            if type == 0:
+                if getattr(origin, check_attr):
+                    result = result + getattr(origin, val_attr)
+
+            elif type == 1:
+                if getattr(origin, check_attr) != "#Speed0":
+                    result = result + getattr(origin, val_attr)
+
+            elif type == 2:
+                if getattr(origin, check_attr):
+                    result = result + param + "%02X" % getattr(origin, val_attr)
+
+            elif type == 3:
+                if getattr(origin, check_attr):
+                    result = result + param
+            
+            return result
+
+        for type, check_attr, val_attr, param in arr:
+            flag_obj = read_flag(obj_data, type, check_attr, val_attr, param)
+            flag_mtl = read_flag(mat_col, type, check_attr, val_attr, param)
+
+            if obj_data.override:
+                if flag_obj != "":
+                    result = result + flag_obj
+                else:
+                    result = result + flag_mtl
+            else:
+                if flag_mtl != "":
+                    result = result + flag_mtl
+                else:
+                    result = result + flag_obj
+
+    if mat_data.is_mesh == True and mat_data.is_collision != True:
         result = (result + "#NoCollision")
-    elif data.is_mesh != True and data.is_collision == True:
+    elif mat_data.is_mesh != True and mat_data.is_collision == True:
         result = (result + "#NoMesh")
 
-    if data.culling == False:
+    if mat_data.culling == False:
         result = (result + "#BackfaceCulling")
 
-    if data.ignore_fog:
+    if mat_data.ignore_fog:
         result = (result + "#IgnoreFog")
 
-    if data.decal:
+    if mat_data.decal:
         result = (result + "#Decal")
 
-    if data.pixelated:
+    if mat_data.pixelated:
         result = (result + "#Pixelated")
     
-    if data.alpha < 255 or data.alpha_method == "BLEND":
-        alpha = data.alpha
+    if mat_data.alpha < 255 or mat_data.alpha_method == "BLEND":
+        alpha = mat_data.alpha
         if alpha == 255:
             alpha = 254
         result = (result + "#Alpha%X" % alpha)
 
-    # if data.shading == "VERTEX":
-    #     result = (result + "#ReverseLight")
-
-    if data.uv_repeat_u == "MIRROR":
+    if mat_data.uv_repeat_u == "MIRROR":
         result = (result + "#MirrorX")
-    elif data.uv_repeat_u == "CLAMP":
+    elif mat_data.uv_repeat_u == "CLAMP":
         result = (result + "#ClampX")
 
-    if data.uv_repeat_v == "MIRROR":
+    if mat_data.uv_repeat_v == "MIRROR":
         result = (result + "#MirrorY")
-    elif data.uv_repeat_v == "CLAMP":
+    elif mat_data.uv_repeat_v == "CLAMP":
         result = (result + "#ClampY")
     
-    if data.is_animated:
-        result = (result + "#%s" % str(data.segment))
+    if mat_data.is_animated:
+        result = (result + "#%s" % str(mat_data.segment))
 
     return result
 
@@ -716,7 +712,6 @@ def write_file(
         # copy all collected files.
         io_utils.path_reference_copy(copy_set)
 
-
 def _write(
     context,
     filepath,
@@ -770,7 +765,6 @@ def _write(
             progress,
         )
         progress.leave_substeps()
-
 
 def save(
     context,

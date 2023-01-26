@@ -2,6 +2,7 @@ import bpy
 from . import node_setup
 
 class Properties_Scene(bpy.types.PropertyGroup):
+    ui_show_collision_3d: bpy.props.BoolProperty(default=False, name="Collision")
     ui_show_collision: bpy.props.BoolProperty(default=False, name="Collision")
     ui_show_mesh: bpy.props.BoolProperty(default=False, name="Mesh")
     ui_show_texture_params: bpy.props.BoolProperty(default=False, name="Texture")
@@ -34,7 +35,7 @@ class Properties_Collision(bpy.types.PropertyGroup):
             ("#SFX_E",          "0x0E",          "0x0E"),
             ("#SFX_F",          "0x0F",          "0x0F"),
         ],
-        default="#SFX_0",
+        default="#SFX_2",
         name="Sound"
     )
 
@@ -131,21 +132,15 @@ class Properties_Material(bpy.types.PropertyGroup):
         update=node_setup.on_material_image_update,
     )
 
+    shift_x_0: bpy.props.IntProperty(name="ShiftX", default=0, min=-3, max=3, update=node_setup.on_material_update_shift)
+    shift_y_0: bpy.props.IntProperty(name="ShiftY", default=0, min=-3, max=3, update=node_setup.on_material_update_shift)
+
     alpha: bpy.props.IntProperty(
         name="Alpha",
         default=255,
         min=0,
         max=255,
-    )
-
-    shading: bpy.props.EnumProperty(
-        items=[
-            ("SHADED", "Lighting", ""),
-            ("VERTEX", "Vertex Color", ""),
-        ],
-        default="VERTEX",
-        name="Shading",
-        update=node_setup.on_material_update_shading
+        update=node_setup.on_material_update_alpha
     )
 
     is_animated: bpy.props.BoolProperty(default=False, name="Animated")
@@ -253,10 +248,18 @@ class Properties_Material(bpy.types.PropertyGroup):
 
     collision: bpy.props.PointerProperty(type=Properties_Collision)
 
+class Properties_Object(Properties_Collision):
+    is_ocarina_object: bpy.props.BoolProperty(default=False)
+    override: bpy.props.BoolProperty(
+        default=False,
+        name="Override",
+        description="Override material settings")
+
 classes = (
     Properties_Scene,
     Properties_Collision,
     Properties_Material,
+    Properties_Object,
 )
 
 def register():
@@ -265,6 +268,7 @@ def register():
     
     bpy.types.Scene.ocarina = bpy.props.PointerProperty(type=Properties_Scene)
     bpy.types.Material.ocarina = bpy.props.PointerProperty(type=Properties_Material)
+    bpy.types.Object.ocarina = bpy.props.PointerProperty(type=Properties_Object)
 
 def unregister():
     del bpy.types.Material.ocarina
