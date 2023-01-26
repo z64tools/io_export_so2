@@ -186,14 +186,14 @@ def write_file_material_info(object:bpy.types.Object, material_name:str, scene:b
             alpha = 254
         result = (result + "#Alpha%X" % alpha)
 
-    if mat_data.uv_repeat_u == "MIRROR":
+    if mat_data.repeat_x_0 == "MIRROR":
         result = (result + "#MirrorX")
-    elif mat_data.uv_repeat_u == "CLAMP":
+    elif mat_data.repeat_x_0 == "CLAMP":
         result = (result + "#ClampX")
 
-    if mat_data.uv_repeat_v == "MIRROR":
+    if mat_data.repeat_y_0 == "MIRROR":
         result = (result + "#MirrorY")
-    elif mat_data.uv_repeat_v == "CLAMP":
+    elif mat_data.repeat_y_0 == "CLAMP":
         result = (result + "#ClampY")
     
     if mat_data.is_animated:

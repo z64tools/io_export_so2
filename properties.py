@@ -15,6 +15,9 @@ class Properties_Scene(bpy.types.PropertyGroup):
         name="Material Tab",
     )
 
+    io_show_texel0: bpy.props.BoolProperty(default=True, name="Texture 0")
+    io_show_texel1: bpy.props.BoolProperty(default=False, name="Texture 1")
+
 class Properties_Collision(bpy.types.PropertyGroup):
     sound_type: bpy.props.EnumProperty(
         items=[
@@ -134,6 +137,8 @@ class Properties_Material(bpy.types.PropertyGroup):
 
     shift_x_0: bpy.props.IntProperty(name="ShiftX", default=0, min=-3, max=3, update=node_setup.on_material_update_shift)
     shift_y_0: bpy.props.IntProperty(name="ShiftY", default=0, min=-3, max=3, update=node_setup.on_material_update_shift)
+    shift_x_1: bpy.props.IntProperty(name="ShiftX", default=0, min=-3, max=3, update=node_setup.on_material_update_shift)
+    shift_y_1: bpy.props.IntProperty(name="ShiftY", default=0, min=-3, max=3, update=node_setup.on_material_update_shift)
 
     alpha: bpy.props.IntProperty(
         name="Alpha",
@@ -141,6 +146,13 @@ class Properties_Material(bpy.types.PropertyGroup):
         min=0,
         max=255,
         update=node_setup.on_material_update_alpha
+    )
+    multi_alpha: bpy.props.IntProperty(
+        name="Mix",
+        default=0,
+        min=0,
+        max=255,
+        update=node_setup.on_material_update_multi_alpha
     )
 
     is_animated: bpy.props.BoolProperty(default=False, name="Animated")
@@ -160,7 +172,7 @@ class Properties_Material(bpy.types.PropertyGroup):
         name=""
     )
 
-    uv_repeat_u: bpy.props.EnumProperty(
+    repeat_x_0: bpy.props.EnumProperty(
         items=[
             (
                 "WRAP",
@@ -190,8 +202,67 @@ class Properties_Material(bpy.types.PropertyGroup):
         default="WRAP",
         update=node_setup.on_material_uv_repeat_update,
     )
-
-    uv_repeat_v: bpy.props.EnumProperty(
+    repeat_y_0: bpy.props.EnumProperty(
+        items=[
+            (
+                "WRAP",
+                "Wrap",
+                "Makes the image normally repeat along V",
+                "TEXTURE",
+                0,
+            ),
+            (
+                "MIRROR",
+                "Mirror",
+                "Makes the image repeat along V, mirroring every other repetition",
+                "MOD_MIRROR",
+                1,
+            ),
+            (
+                "CLAMP",
+                "Clamp",
+                "Makes the image not repeat along V, "
+                "stretching the first and last lines of the image",
+                "FULLSCREEN_EXIT",
+                2,
+            ),
+        ],
+        name="UV Repeat V",
+        description="How to repeat the image along the V component of UVs",
+        default="WRAP",
+        update=node_setup.on_material_uv_repeat_update,
+    )
+    repeat_x_1: bpy.props.EnumProperty(
+        items=[
+            (
+                "WRAP",
+                "Wrap",
+                "Makes the image normally repeat along U",
+                "TEXTURE",
+                0,
+            ),
+            (
+                "MIRROR",
+                "Mirror",
+                "Makes the image repeat along U, mirroring every other repetition",
+                "MOD_MIRROR",
+                1,
+            ),
+            (
+                "CLAMP",
+                "Clamp",
+                "Makes the image not repeat along U, "
+                "stretching the first and last columns of the image",
+                "FULLSCREEN_EXIT",
+                2,
+            ),
+        ],
+        name="UV Repeat U",
+        description="How to repeat the image along the U component of UVs",
+        default="WRAP",
+        update=node_setup.on_material_uv_repeat_update,
+    )
+    repeat_y_1: bpy.props.EnumProperty(
         items=[
             (
                 "WRAP",

@@ -127,16 +127,21 @@ class UI_PT_Material(bpy.types.Panel):
                 sub_box.separator(factor=0.0)
 
                 if xscene.ui_material_tab == "TEXTURE":
-                    def default_texture_draw():
-                        sub_box.template_ID(xmaterial, "texture_0", open="image.open")
-                        row = sub_box.row()
-                        row.prop(xmaterial, "uv_repeat_u", text='', icon='EVENT_X')
-                        row.prop(xmaterial, "uv_repeat_v", text='', icon='EVENT_Y')
-                        row = sub_box.row()
-                        row.prop(xmaterial, "shift_x_0", text='')
-                        row.prop(xmaterial, "shift_y_0", text='')
+                    def default_texture_draw(box:bpy.types.UILayout, index):
+                        box.template_ID(xmaterial, "texture_" + index, open="image.open")
+                        row = box.row()
+                        row.prop(xmaterial, "repeat_x_" + index, text='', icon='EVENT_X')
+                        row.prop(xmaterial, "repeat_y_" + index, text='', icon='EVENT_Y')
+                        row = box.row()
+                        row.prop(xmaterial, "shift_x_" + index, text='')
+                        row.prop(xmaterial, "shift_y_" + index, text='')
                     
-                    default_texture_draw()
+                    if foldable_menu(sub_box, xscene, "io_show_texel0"):
+                        default_texture_draw(sub_box, "0")
+                    if foldable_menu(sub_box, xscene, "io_show_texel1"):
+                        default_texture_draw(sub_box, "1")
+
+                    sub_box.prop(xmaterial, "multi_alpha", slider=True)
                 
                 elif xscene.ui_material_tab == "MATERIAL":
                     dependant_row_prop(sub_box, xmaterial, "is_animated", "segment")
