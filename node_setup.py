@@ -117,71 +117,6 @@ def create_uv_group():
 
     group.links.new(combiner.outputs[0], outputs.inputs[0])
 
-def create_lerp():
-    group = bpy.data.node_groups.get("SOLerp")
-
-    if group == None:
-        group = bpy.data.node_groups.new("SOLerp", "ShaderNodeTree")
-
-    def add_node(name, type, x, y):
-        n = group.nodes.get(name)
-        if n == None:
-            n = group.nodes.new(type)
-        n.name = name
-        n.label = name
-        n.location = x, y
-
-        return n
-    
-    def add_input(type, name):
-        n = group.inputs.get(name)
-        if n == None:
-            n = group.inputs.new(type, name)
-
-        return n
-    
-    def add_output(type, name):
-        n = group.outputs.get(name)
-        if n == None:
-            n = group.outputs.new(type, name)
-
-        return n
-    
-    inputs = add_node("Input", "NodeGroupInput", -450, 0)
-    outputs = add_node("Output", "NodeGroupOutput", 150, 0)
-    add_input("NodeSocketFloat", "i")
-    add_input("NodeSocketFloat", "A")
-    add_input("NodeSocketFloat", "B")
-    add_output("NodeSocketFloat", "Value")
-
-    # A * (1 - i) + B * i
-
-    value_1 = add_node("1", "ShaderNodeValue", -300, 175)
-    value_1.outputs[0].default_value = 1
-
-    inv_i = add_node("Inv", "ShaderNodeMath", -300, 0)
-    inv_i.operation = "SUBTRACT"
-    group.links.new(value_1.outputs[0], inv_i.inputs[0])
-    group.links.new(inputs.outputs[0], inv_i.inputs[1])
-
-    mul_a = add_node("MulA", "ShaderNodeMath", -150, 175)
-    mul_a.operation = "MULTIPLY"
-    group.links.new(inputs.outputs[1], mul_a.inputs[0])
-    group.links.new(inv_i.outputs[0], mul_a.inputs[1])
-
-    mul_b = add_node("MulB", "ShaderNodeMath", -150, 0)
-    mul_b.operation = "MULTIPLY"
-    group.links.new(inputs.outputs[2], mul_b.inputs[0])
-    group.links.new(inputs.outputs[0], mul_b.inputs[1])
-
-    add = add_node("Add", "ShaderNodeMath", 0, 0)
-    add.operation = "ADD"
-    group.links.new(mul_a.outputs[0], add.inputs[0])
-    group.links.new(mul_b.outputs[0], add.inputs[1])
-
-    group.links.new(add.outputs[0], outputs.inputs[0])
-
-
  # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 def sodata_alpha(node:bpy.types.ShaderNode, so_data):
@@ -222,6 +157,7 @@ def sodata_shift(node:bpy.types.ShaderNode, so_data):
         node.inputs[2].default_value = value(so_data.shift_x_1)
         node.inputs[3].default_value = value(so_data.shift_y_1)
 
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 def ensure_setup_and_get_nodes(material: bpy.types.Material):
@@ -246,7 +182,6 @@ def ensure_setup_and_get_nodes(material: bpy.types.Material):
                 object.data.vertex_colors.new(do_init=False)
 
     create_uv_group()
-    create_lerp()
 
     other_output_nodes = [
         node
@@ -258,37 +193,49 @@ def ensure_setup_and_get_nodes(material: bpy.types.Material):
     
     def init_func_input0_1(node:bpy.types.ShaderNode, so_data):
         node.inputs[0].default_value = 1
+    
+    def init_ramp(node:bpy.types.ShaderNodeValToRGB, so_data):
+        elements = node.color_ramp.elements
+
+        while len(elements) < 4:
+            elements.new(0.5)
+
+        elements[0].color = 0, 0, 0, 0
+        elements[0].position = 0.0
+        elements[1].color = 0.5, 0.5, 0.5, 0.5
+        elements[1].position = 0.35
+        elements[2].color = 0.75, 0.75, 0.75, 0.75
+        elements[2].position = 0.6
+        elements[3].color = 1, 1, 1, 1
+        elements[3].position = 0.8
 
     data = {
-         "SOOutput":      ( 300,    0, "ShaderNodeOutputMaterial", None,               False),
-         "SOShader":      (  50,    0, "ShaderNodeBsdfPrincipled", None,               False),
-         "SOTexel0":      (-500,    0, "ShaderNodeTexImage",       sodata_pixelated,   False),
-         "SOTexel1":      (-500, -200, "ShaderNodeTexImage",       sodata_pixelated,   False),
-         "UV0":           (-650,  -75, "ShaderNodeGroup",          sodata_shift,       False),
-         "UV1":           (-650, -275, "ShaderNodeGroup",          sodata_shift,       False),
-         "SOVtxCol":      (-400, -405, "ShaderNodeVertexColor",    None,               False),
-         "SOTexColMixer": (-250,    0, "ShaderNodeMixRGB",         sodata_multi_alpha, False),
-         "SOTexAlpMixer": (-250, -175, "ShaderNodeGroup",          sodata_multi_alpha, True),
-         "SOVtxColMixer": (-100,    0, "ShaderNodeMixRGB",         init_func_input0_1, False),
-         "SOVtxAlpMixer": (-100, -175, "ShaderNodeMath",           None,               False),
-         "SOAlpAlpMixer": (-100, -350, "ShaderNodeMath",           sodata_alpha,       False),
+         "SOOutput":      ( 300,    0, "ShaderNodeOutputMaterial", None),
+         "SOShader":      (  50,    0, "ShaderNodeBsdfPrincipled", None),
+         "SOTexel0":      (-500,    0, "ShaderNodeTexImage",       sodata_pixelated),
+         "SOTexel1":      (-500, -200, "ShaderNodeTexImage",       sodata_pixelated),
+         "UV0":           (-650,  -75, "ShaderNodeGroup",          sodata_shift),
+         "UV1":           (-650, -275, "ShaderNodeGroup",          sodata_shift),
+         "SOVtxCol":      (-400, -405, "ShaderNodeVertexColor",    None),
+         "SOTexColMixer": (-250,    0, "ShaderNodeMixRGB",         sodata_multi_alpha),
+         "SOTexAlpMixer": (-250, -175, "ShaderNodeMixRGB",         sodata_multi_alpha),
+         "SOVtxColMixer": (-100,    0, "ShaderNodeMixRGB",         init_func_input0_1),
+         "SOVtxAlpMixer": (-100, -175, "ShaderNodeMixRGB",         init_func_input0_1),
+         "SOAlpAlpMixer": (-100, -350, "ShaderNodeMath",           sodata_alpha),
+         "SOAlphaAdjust": (-200, -510, "ShaderNodeValToRGB",       init_ramp),
     }
     nodes = {}
 
-    for name, (x, y, node_type, init_func, lerp) in data.items():
+    for name, (x, y, node_type, init_func) in data.items():
         nodes[name] = node_tree.nodes.get(name)
 
         if nodes[name] == None:
             nodes[name] = node_tree.nodes.new(node_type)
             nodes[name].name = name
             nodes[name].label = name
-        
-        if lerp:
-            nodes[name].node_tree = bpy.data.node_groups['SOLerp']
-
         if init_func != None:
             init_func(nodes[name], so_data)
-        nodes[name].location = x, y
+        nodes[name].location = x + 200, y
     
     node_tree.links.new(nodes["UV0"].outputs[0], nodes["SOTexel0"].inputs[0])
     node_tree.links.new(nodes["UV1"].outputs[0], nodes["SOTexel1"].inputs[0])
@@ -300,17 +247,20 @@ def ensure_setup_and_get_nodes(material: bpy.types.Material):
 
     node_tree.links.new(nodes["SOVtxCol"].outputs[0], nodes["SOVtxColMixer"].inputs[2])
     node_tree.links.new(nodes["SOTexColMixer"].outputs[0], nodes["SOVtxColMixer"].inputs[1])
-    node_tree.links.new(nodes["SOVtxCol"].outputs[1], nodes["SOVtxAlpMixer"].inputs[1])
-    node_tree.links.new(nodes["SOTexAlpMixer"].outputs[0], nodes["SOVtxAlpMixer"].inputs[0])
+    node_tree.links.new(nodes["SOVtxCol"].outputs[1], nodes["SOVtxAlpMixer"].inputs[2])
+    node_tree.links.new(nodes["SOTexAlpMixer"].outputs[0], nodes["SOVtxAlpMixer"].inputs[1])
     nodes["SOVtxColMixer"].inputs[0].default_value = 1
+    nodes["SOVtxAlpMixer"].inputs[0].default_value = 1
     nodes["SOVtxColMixer"].blend_type = "MULTIPLY"
-    nodes["SOVtxAlpMixer"].operation = "MULTIPLY"
+    nodes["SOVtxAlpMixer"].blend_type = "MULTIPLY"
 
     node_tree.links.new(nodes["SOVtxAlpMixer"].outputs[0], nodes["SOAlpAlpMixer"].inputs[1])
     nodes["SOAlpAlpMixer"].operation = "MULTIPLY"
 
+    node_tree.links.new(nodes["SOAlpAlpMixer"].outputs[0], nodes["SOAlphaAdjust"].inputs[0])
+
     node_tree.links.new(nodes["SOVtxColMixer"].outputs[0], nodes["SOShader"].inputs[0])
-    node_tree.links.new(nodes["SOAlpAlpMixer"].outputs[0], nodes["SOShader"].inputs[21])
+    node_tree.links.new(nodes["SOAlphaAdjust"].outputs[1], nodes["SOShader"].inputs[21])
     nodes["SOShader"].inputs[7].default_value = 0
 
     node_tree.links.new(nodes["SOShader"].outputs[0], nodes["SOOutput"].inputs[0])
@@ -344,7 +294,7 @@ def set_simple_material_image(mat:bpy.types.Material, nodes:MaterialNodes, data)
     nodes.texel0.image = data.texture_0
     nodes.texel1.image = data.texture_1
 
-    if data.texture_0 == None or mat.ocarina.is_mesh == False:
+    if data.texture_0 is None or mat.ocarina.is_mesh == False:
         mat.node_tree.links.remove(nodes.shader.inputs["Base Color"].links[0])
         nodes.shader.inputs["Base Color"].default_value = 1, 0, 0, 1
         mat.node_tree.links.remove(nodes.shader.inputs["Alpha"].links[0])
@@ -354,9 +304,6 @@ def set_simple_material_image(mat:bpy.types.Material, nodes:MaterialNodes, data)
 
         new_name = new_name.replace("#", "\0")
         mat.name = new_name.removesuffix(".png")
-    
-    if data.texture_1 == None:
-        setattr(data, 'multi_alpha', 0)
 
 def set_simple_material_uv_repeats(nodes:MaterialNodes, data):
     values = {
