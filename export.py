@@ -29,7 +29,6 @@ def name_compat(name):
     else:
         return name.replace(" ", "_")
 
-
 def mesh_triangulate(me):
     import bmesh
 
@@ -38,7 +37,6 @@ def mesh_triangulate(me):
     bmesh.ops.triangulate(bm, faces=bm.faces)
     bm.to_mesh(me)
     bm.free()
-
 
 def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
     source_dir = os.path.dirname(bpy.data.filepath)
@@ -93,7 +91,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                             copy_set,
                             image.library,
                         )
-                        fw("map_Mt %s\n" % repr(filepath)[1:-1])
+                        fw("map_Ka %s\n" % repr(filepath)[1:-1])
 
 from . import properties
 
@@ -198,6 +196,21 @@ def write_file_material_info(object:bpy.types.Object, material_name:str, scene:b
     
     if mat_data.is_animated:
         result = (result + "#%s" % str(mat_data.segment))
+
+    if mat_data.shift_x_0 != 0:
+        result = result + "#ShiftS" + "%02d" % mat_data.shift_x_0
+    if mat_data.shift_y_0 != 0:
+        result = result + "#ShiftT" + "%02d" % mat_data.shift_x_0
+
+    if mat_data.texel_format != "Auto":
+        result = result + mat_data.texel_format
+
+    if mat_data.texture_1 != None:
+        if mat_data.shift_x_1 != 0:
+            result = result + "#MultiShiftS%02d" % mat_data.shift_x_1
+        if mat_data.shift_y_1 != 0:
+            result = result + "#MultiShiftT%02d" % mat_data.shift_x_1
+        result = result + "#MultiAlpha%02X" % mat_data.multi_alpha
 
     return result
 
@@ -327,12 +340,6 @@ def write_file(
                     prev_collection = None
 
                     for collection in parent_collections:
-                        if prev_collection is not None:
-                            if collection in prev_collection.children.values():
-                                obj_group_name_collection_prefix += "."
-                            else:
-                                obj_group_name_collection_prefix += "_"
-
                         obj_group_name_collection_prefix += name_compat(collection.name)
 
                         prev_collection = collection
@@ -435,10 +442,12 @@ def write_file(
 
                         if EXPORT_GROUP_NAME_USE_COLLECTION:
                             obj_group_name_base = (
-                                obj_group_name_collection_prefix
-                                + "#_"
-                                + obj_group_name_base
+                                obj_group_name_base + "_"
+                                + obj_group_name_collection_prefix
                             )
+
+                            if obj_group_name_collection_prefix.startswith("#Room"):
+                                obj_group_name_base = obj_group_name_base + "#"
 
                         if EXPORT_GROUP_BY_OB:
                             fw("g %s\n" % obj_group_name_base)

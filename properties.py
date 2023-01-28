@@ -140,6 +140,22 @@ class Properties_Material(bpy.types.PropertyGroup):
     shift_x_1: bpy.props.IntProperty(name="ShiftX", default=0, min=-3, max=3, update=node_setup.on_material_update_shift)
     shift_y_1: bpy.props.IntProperty(name="ShiftY", default=0, min=-3, max=3, update=node_setup.on_material_update_shift)
 
+    texel_format: bpy.props.EnumProperty(
+        items=[
+            ("Auto",    "Auto",   ""),
+            ("#RGBA16", "RGBA16", ""),
+            ("#RGBA32", "RGBA32", ""),
+            ("#CI4",    "CI4",    ""),
+            ("#CI8",    "CI8",    ""),
+            ("#I4",     "I4",     ""),
+            ("#I8",     "I8",     ""),
+            ("#IA8",    "IA8",    ""),
+            ("#IA16",   "IA16",   ""),
+        ],
+        name="Format",
+        default="Auto"
+    )
+
     alpha: bpy.props.IntProperty(
         name="Alpha",
         default=255,

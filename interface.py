@@ -70,7 +70,7 @@ class UI_OT_Refresh(bpy.types.Operator):
     bl_options = {"INTERNAL", "UNDO"}
 
     def execute(self, context):
-        
+
         for object_name in context.scene.objects.items():
             object = context.scene.objects[object_name[0]]
 
@@ -136,12 +136,13 @@ class UI_PT_Material(bpy.types.Panel):
                         row.prop(xmaterial, "shift_x_" + index, text='')
                         row.prop(xmaterial, "shift_y_" + index, text='')
                     
+                    sub_box.prop(xmaterial, "texel_format")
+                    sub_box.prop(xmaterial, "multi_alpha", slider=True)
                     if foldable_menu(sub_box, xscene, "io_show_texel0"):
                         default_texture_draw(sub_box, "0")
                     if foldable_menu(sub_box, xscene, "io_show_texel1"):
                         default_texture_draw(sub_box, "1")
 
-                    sub_box.prop(xmaterial, "multi_alpha", slider=True)
                 
                 elif xscene.ui_material_tab == "MATERIAL":
                     dependant_row_prop(sub_box, xmaterial, "is_animated", "segment")
