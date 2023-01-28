@@ -66,7 +66,7 @@ class UI_OT_MaterialInitializer(bpy.types.Operator):
 
 class UI_OT_Refresh(bpy.types.Operator):
     bl_idname = "ocarina.refresh"
-    bl_label = 'Refresh'
+    bl_label = 'Update Materials'
     bl_options = {"INTERNAL", "UNDO"}
 
     def execute(self, context):

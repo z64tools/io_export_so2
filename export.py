@@ -22,7 +22,6 @@ from bpy_extras.io_utils import (
     axis_conversion,
 )
 
-
 def name_compat(name):
     if name is None:
         return "None"
@@ -92,8 +91,6 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                             image.library,
                         )
                         fw("map_Ka %s\n" % repr(filepath)[1:-1])
-
-from . import properties
 
 def write_file_material_info(object:bpy.types.Object, material_name:str, scene:bpy.types.Scene) -> str:
     if material_name == "None":
@@ -814,7 +811,6 @@ def save(
 
     return {"FINISHED"}
 
-
 @orientation_helper(axis_forward="-Z", axis_up="Y")
 class ExportOBJ(bpy.types.Operator, ExportHelper):
     bl_idname = "export_obj_so.export"
@@ -928,7 +924,6 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
     def draw(self, context):
         pass
 
-
 class EXPORT_OBJ_SO_PT_export_include(bpy.types.Panel):
     bl_space_type = "FILE_BROWSER"
     bl_region_type = "TOOL_PROPS"
@@ -958,7 +953,6 @@ class EXPORT_OBJ_SO_PT_export_include(bpy.types.Panel):
         col.prop(operator, "group_by_material")
         col.prop(operator, "group_name_use_collection")
 
-
 class EXPORT_OBJ_SO_PT_export_transform(bpy.types.Panel):
     bl_space_type = "FILE_BROWSER"
     bl_region_type = "TOOL_PROPS"
@@ -984,7 +978,6 @@ class EXPORT_OBJ_SO_PT_export_transform(bpy.types.Panel):
         layout.prop(operator, "path_mode")
         layout.prop(operator, "axis_forward")
         layout.prop(operator, "axis_up")
-
 
 class EXPORT_OBJ_SO_PT_export_geometry(bpy.types.Panel):
     bl_space_type = "FILE_BROWSER"
@@ -1016,10 +1009,8 @@ class EXPORT_OBJ_SO_PT_export_geometry(bpy.types.Panel):
         layout.prop(operator, "use_vertex_groups")
         layout.prop(operator, "keep_vertex_order")
 
-
 def menu_func_export(self, context):
     self.layout.operator(ExportOBJ.bl_idname, text="SharpOcarina Object (.obj)")
-
 
 classes = (
     ExportOBJ,

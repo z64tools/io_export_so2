@@ -14,9 +14,9 @@ class Properties_Scene(bpy.types.PropertyGroup):
         default="TEXTURE",
         name="Material Tab",
     )
-
     io_show_texel0: bpy.props.BoolProperty(default=True, name="Texture 0")
     io_show_texel1: bpy.props.BoolProperty(default=False, name="Texture 1")
+
 
 class Properties_Collision(bpy.types.PropertyGroup):
     sound_type: bpy.props.EnumProperty(
