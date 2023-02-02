@@ -19,8 +19,8 @@
 # <pep8-80 compliant>
 
 bl_info = {
-    "name": "SharpOcarina Addon",
-    "author": "Rankaisija, Campbell Barton, Bastien Montagne",
+    "name": "SharpOcarina Export",
+    "author": "dr.doodongo, Dragorn421, Campbell Barton, Bastien Montagne",
     "version": (1, 0, 0),
     "blender": (3, 0, 0),
     "location": "File > Export",
