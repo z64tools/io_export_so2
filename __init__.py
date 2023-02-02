@@ -37,7 +37,7 @@ from . import export
 from . import properties
 from . import interface
 
-def reload_all_modules(log=False):
+def reload_all_modules(log=True):
     global modules
 
     import importlib

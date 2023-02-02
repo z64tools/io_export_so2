@@ -90,7 +90,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                             copy_set,
                             image.library,
                         )
-                        fw("map_Ka %s\n" % repr(filepath)[1:-1])
+                        fw("map_Ks %s\n" % repr(filepath)[1:-1])
 
 def write_file_material_info(object:bpy.types.Object, material_name:str, scene:bpy.types.Scene) -> str:
     if material_name == "None":

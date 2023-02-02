@@ -47,6 +47,25 @@ def draw_collision_params(xcol:properties.Properties_Collision, box:bpy.types.UI
         row.enabled = False
     row.prop(xcol, "waterstream")
 
+def set_object_properties(context:bpy.types.Context, object:bpy.types.Object = None):
+    if object != None:
+        dummy_context:bpy.types.Context = context.copy()
+        dummy_context["object"] = object
+
+        bpy.ops.object.shade_smooth(dummy_context)
+        
+        if object.modifiers.get("EdgeSplit") == None:
+            bpy.ops.object.modifier_add(dummy_context, type="EDGE_SPLIT")
+            object.modifiers["EdgeSplit"].use_edge_angle = False
+
+    else:
+        bpy.ops.object.shade_smooth()
+
+        if context.object.modifiers.get("EdgeSplit") == None:
+            bpy.ops.object.modifier_add(type="EDGE_SPLIT")
+            context.object.modifiers["EdgeSplit"].use_edge_angle = False
+
+
 class UI_OT_MaterialInitializer(bpy.types.Operator):
     bl_idname = "ocarina.material_initializer"
     bl_label = 'Initialize material'
@@ -61,6 +80,8 @@ class UI_OT_MaterialInitializer(bpy.types.Operator):
         obj_data.is_ocarina_object = True
         mat_data.is_ocarina_material = True
         mat_data.alpha_method = "CLIP"
+
+        set_object_properties(context=context)
 
         return {'FINISHED'}
 
@@ -83,6 +104,9 @@ class UI_OT_Refresh(bpy.types.Operator):
 
                 if mat_data.is_ocarina_material:
                     obj_data.is_ocarina_object = True
+
+            if object.ocarina.is_ocarina_object:
+                set_object_properties(context, object)
 
         return {'FINISHED'}
 
@@ -195,6 +219,7 @@ class UI_PT_3dview(bpy.types.Panel):
 
         box = self.layout.box()
         box.operator('ocarina.refresh')
+        box.operator("export_obj_so.export")
         box.label(text="Object: " + obj_name)
 
         if object != None and object.type == 'MESH':
