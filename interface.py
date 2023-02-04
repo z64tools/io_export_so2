@@ -79,6 +79,7 @@ class UI_OT_MaterialInitializer(bpy.types.Operator):
 
         obj_data.is_ocarina_object = True
         mat_data.is_ocarina_material = True
+        material.use_nodes = True
         mat_data.alpha_method = "CLIP"
 
         set_object_properties(context=context)
