@@ -76,6 +76,12 @@ class UI_OT_MaterialInitializer(bpy.types.Operator):
         object = context.object
         mat_data: properties.Properties_Material = material.ocarina
         obj_data: properties.Properties_Object = object.ocarina
+        swap_mode = False
+
+        if context.object.mode != "OBJECT":
+            swap_mode = True
+            if bpy.ops.object.mode_set.poll():
+                bpy.ops.object.mode_set(mode="OBJECT")
 
         obj_data.is_ocarina_object = True
         mat_data.is_ocarina_material = True
@@ -83,6 +89,11 @@ class UI_OT_MaterialInitializer(bpy.types.Operator):
         mat_data.alpha_method = "CLIP"
 
         set_object_properties(context=context)
+
+        if swap_mode:
+            if bpy.ops.object.mode_set.poll():
+                bpy.ops.object.mode_set(mode="EDIT")
+
 
         return {'FINISHED'}
 
