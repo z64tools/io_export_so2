@@ -113,6 +113,7 @@ class Properties_Collision(bpy.types.PropertyGroup):
 
     waterstream: bpy.props.BoolProperty(default=False, name="Water Conveyor")
     hookshot: bpy.props.BoolProperty(default=False, name="Hookshot")
+    steep: bpy.props.BoolProperty(default=False, name="Steep")
     ignore_cam: bpy.props.BoolProperty(default=False, name="Ignore Cam")
     ignore_actor: bpy.props.BoolProperty(default=False, name="Ignore Actor")
     ignore_proj: bpy.props.BoolProperty(default=False, name="Ignore Projectile")

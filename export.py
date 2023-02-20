@@ -117,6 +117,7 @@ def write_file_material_info(object:bpy.types.Object, material_name:str, scene:b
             [ 2, "has_env",           "env",            "#IndoorEnv" ],
             [ 2, "has_exit",          "exit",           "#Exit" ],
             [ 3, "hookshot",          "",               "#Hookshot"],
+            [ 3, "steep",             "",               "#Steep"],
             [ 3, "ignore_cam",        "",               "#IgnoreCamera"],
             [ 3, "ignore_actor",      "",               "#IgnoreActors"],
             [ 3, "ignore_proj",       "",               "#IgnoreProjectiles"],

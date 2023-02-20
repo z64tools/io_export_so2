@@ -35,11 +35,13 @@ def draw_collision_params(xcol:properties.Properties_Collision, box:bpy.types.UI
     if not is_obj:
         row = box.row()
         row.prop(xcol, "hookshot")
-        row.prop(xcol, "ignore_cam")
+        row.prop(xcol, "steep")
 
+        box.label(text="Ignore:")
         row = box.row()
-        row.prop(xcol, "ignore_actor")
-        row.prop(xcol, "ignore_proj")
+        row.prop(xcol, "ignore_cam", text="Camera")
+        row.prop(xcol, "ignore_actor", text="Actor")
+        row.prop(xcol, "ignore_proj", text="Projectile")
 
     dependant_row_prop(box, xcol, "conveyor_speed", "conveyor_dir", "#Speed0")
     row = box.row()
