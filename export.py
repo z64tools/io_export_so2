@@ -37,7 +37,7 @@ def mesh_triangulate(me):
     bm.to_mesh(me)
     bm.free()
 
-def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
+def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict, copy_textures):
     source_dir = os.path.dirname(bpy.data.filepath)
     dest_dir = os.path.dirname(filepath)
 
@@ -64,33 +64,63 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                 data:properties.Properties_Material = mat.ocarina
 
                 if data.is_ocarina_material:
-                    image = data.texture_0
-            
-                    if image is not None:
-                        filepath = io_utils.path_reference(
-                            image.filepath,
-                            source_dir,
-                            dest_dir,
-                            path_mode,
-                            "",
-                            copy_set,
-                            image.library,
-                        )
-                        fw("map_Kd %s\n" % repr(filepath)[1:-1])
+                    if copy_textures:
+                        image = data.texture_0
+                
+                        if image is not None:
+                            filepath = io_utils.path_reference(
+                                image.filepath,
+                                source_dir,
+                                dest_dir,
+                                path_mode,
+                                "",
+                                copy_set,
+                                image.library,
+                            )
+                            fw("map_Kd %s\n" % repr(filepath)[1:-1])
 
-                    image = data.texture_1
+                        image = data.texture_1
 
-                    if image is not None:
-                        filepath = io_utils.path_reference(
-                            image.filepath,
-                            source_dir,
-                            dest_dir,
-                            path_mode,
-                            "",
-                            copy_set,
-                            image.library,
-                        )
-                        fw("map_Ks %s\n" % repr(filepath)[1:-1])
+                        if image is not None:
+                            filepath = io_utils.path_reference(
+                                image.filepath,
+                                source_dir,
+                                dest_dir,
+                                path_mode,
+                                "",
+                                copy_set,
+                                image.library,
+                            )
+                            fw("map_Ks %s\n" % repr(filepath)[1:-1])
+                    
+                    else:
+                        image = data.texture_0
+                
+                        if image is not None:
+                            filepath = io_utils.path_reference(
+                                image.filepath,
+                                source_dir,
+                                dest_dir,
+                                path_mode,
+                                "",
+                                copy_set,
+                                image.library,
+                            )
+                            fw("map_Kd %s\n" % repr(filepath)[1:-1])
+
+                        image = data.texture_1
+
+                        if image is not None:
+                            filepath = io_utils.path_reference(
+                                image.filepath,
+                                source_dir,
+                                dest_dir,
+                                path_mode,
+                                "",
+                                copy_set,
+                                image.library,
+                            )
+                            fw("map_Ks %s\n" % repr(filepath)[1:-1])
 
 def write_file_material_info(object:bpy.types.Object, material_name:str, scene:bpy.types.Scene) -> str:
     if material_name == "None":
@@ -228,6 +258,7 @@ def write_file(
     EXPORT_KEEP_VERT_ORDER=False,
     EXPORT_POLYGROUPS=False,
     EXPORT_GLOBAL_MATRIX=None,
+    EXPORT_COPY_TEXTURES=False,
     EXPORT_PATH_MODE="AUTO",
     progress=ProgressReport(),
 ):
@@ -714,7 +745,7 @@ def write_file(
 
         # Now we have all our materials, save them
         if EXPORT_MTL:
-            write_mtl(scene, mtlfilepath, EXPORT_PATH_MODE, copy_set, mtl_dict)
+            write_mtl(scene, mtlfilepath, EXPORT_PATH_MODE, copy_set, mtl_dict, EXPORT_COPY_TEXTURES)
 
         # copy all collected files.
         io_utils.path_reference_copy(copy_set)
@@ -734,6 +765,7 @@ def _write(
     EXPORT_POLYGROUPS,
     EXPORT_SEL_ONLY,  # ok
     EXPORT_GLOBAL_MATRIX,
+    EXPORT_COPY_TEXTURES,
     EXPORT_PATH_MODE,  # Not used
 ):
 
@@ -742,8 +774,12 @@ def _write(
         scene = context.scene
 
         # Exit edit mode before exporting, so current object states are exported properly.
-        if bpy.ops.object.mode_set.poll():
-            bpy.ops.object.mode_set(mode="OBJECT")
+
+        mode = bpy.context.mode
+
+        if mode != "OBJECT":
+            if bpy.ops.object.mode_set.poll():
+                bpy.ops.object.mode_set(mode="OBJECT")
 
         if EXPORT_SEL_ONLY:
             objects = context.selected_objects
@@ -768,10 +804,15 @@ def _write(
             EXPORT_KEEP_VERT_ORDER,
             EXPORT_POLYGROUPS,
             EXPORT_GLOBAL_MATRIX,
+            EXPORT_COPY_TEXTURES,
             EXPORT_PATH_MODE,
             progress,
         )
         progress.leave_substeps()
+
+        if mode != "OBJECT":
+            if bpy.ops.object.mode_set.poll():
+                bpy.ops.object.mode_set(mode=mode)
 
 def save(
     context,
@@ -789,8 +830,12 @@ def save(
     use_vertex_groups=False,
     use_selection=True,
     global_matrix=None,
+    copy_textures=False,
     path_mode="AUTO"
 ):
+    
+    if path_mode == "AUTO":
+        path_mode = "RELATIVE"
 
     _write(
         context,
@@ -807,7 +852,8 @@ def save(
         EXPORT_POLYGROUPS=use_vertex_groups,
         EXPORT_SEL_ONLY=use_selection,
         EXPORT_GLOBAL_MATRIX=global_matrix,
-        EXPORT_PATH_MODE="RELATIVE",
+        EXPORT_COPY_TEXTURES=copy_textures,
+        EXPORT_PATH_MODE=path_mode,
     )
 
     return {"FINISHED"}
@@ -820,7 +866,7 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
 
     filename_ext = ".obj"
     filter_glob: StringProperty(
-        default="*.obj;*.mtl",
+        default="*.obj",
         options={"HIDDEN"},
     )
 
@@ -885,6 +931,11 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
         description="",
         default=False,
     )
+    copy_textures: BoolProperty(
+        name="Copy Textures",
+        description="",
+        default=False,
+    )
 
     global_scale: FloatProperty(
         name="Scale",
@@ -923,51 +974,6 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
         return save(context, **keywords)
 
     def draw(self, context):
-        pass
-
-class EXPORT_OBJ_SO_PT_export_include(bpy.types.Panel):
-    bl_space_type = "FILE_BROWSER"
-    bl_region_type = "TOOL_PROPS"
-    bl_label = "Include"
-    bl_parent_id = "FILE_PT_operator"
-
-    @classmethod
-    def poll(cls, context):
-        sfile = context.space_data
-        operator = sfile.active_operator
-
-        return operator.bl_idname == "EXPORT_OBJ_SO_OT_export"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False  # No animation.
-
-        sfile = context.space_data
-        operator = sfile.active_operator
-
-        col = layout.column(heading="Limit to")
-        col.prop(operator, "use_selection")
-
-        col = layout.column(heading="Objects as", align=True)
-        col.prop(operator, "group_by_object")
-        col.prop(operator, "group_by_material")
-        col.prop(operator, "group_name_use_collection")
-
-class EXPORT_OBJ_SO_PT_export_transform(bpy.types.Panel):
-    bl_space_type = "FILE_BROWSER"
-    bl_region_type = "TOOL_PROPS"
-    bl_label = "Transform"
-    bl_parent_id = "FILE_PT_operator"
-
-    @classmethod
-    def poll(cls, context):
-        sfile = context.space_data
-        operator = sfile.active_operator
-
-        return operator.bl_idname == "EXPORT_OBJ_SO_OT_export"
-
-    def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
@@ -977,47 +983,15 @@ class EXPORT_OBJ_SO_PT_export_transform(bpy.types.Panel):
 
         layout.prop(operator, "global_scale")
         layout.prop(operator, "path_mode")
-        layout.prop(operator, "axis_forward")
-        layout.prop(operator, "axis_up")
-
-class EXPORT_OBJ_SO_PT_export_geometry(bpy.types.Panel):
-    bl_space_type = "FILE_BROWSER"
-    bl_region_type = "TOOL_PROPS"
-    bl_label = "Geometry"
-    bl_parent_id = "FILE_PT_operator"
-    bl_options = {"DEFAULT_CLOSED"}
-
-    @classmethod
-    def poll(cls, context):
-        sfile = context.space_data
-        operator = sfile.active_operator
-
-        return operator.bl_idname == "EXPORT_OBJ_SO_OT_export"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False  # No animation.
-
-        sfile = context.space_data
-        operator = sfile.active_operator
-
-        layout.prop(operator, "use_mesh_modifiers")
-        layout.prop(operator, "use_normals")
-        layout.prop(operator, "use_vertex_colors")
-        layout.prop(operator, "use_uvs")
-        layout.prop(operator, "use_materials")
-        layout.prop(operator, "use_vertex_groups")
-        layout.prop(operator, "keep_vertex_order")
+        layout.prop(operator, "copy_textures")
+        layout.prop(operator, "group_name_use_collection")
+        # pass
 
 def menu_func_export(self, context):
     self.layout.operator(ExportOBJ.bl_idname, text="SharpOcarina Object (.obj)")
 
 classes = (
     ExportOBJ,
-    EXPORT_OBJ_SO_PT_export_include,
-    EXPORT_OBJ_SO_PT_export_transform,
-    EXPORT_OBJ_SO_PT_export_geometry,
 )
 
 def register():
