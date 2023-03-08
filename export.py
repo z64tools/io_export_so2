@@ -146,6 +146,7 @@ def write_file_material_info(object:bpy.types.Object, material_name:str, scene:b
             [ 2, "has_camera",        "camera",         "#Camera" ],
             [ 2, "has_env",           "env",            "#IndoorEnv" ],
             [ 2, "has_exit",          "exit",           "#Exit" ],
+            [ 4, "",                  "echo",           "#Echo" ],
             [ 3, "hookshot",          "",               "#Hookshot"],
             [ 3, "steep",             "",               "#Steep"],
             [ 3, "ignore_cam",        "",               "#IgnoreCamera"],
@@ -171,6 +172,10 @@ def write_file_material_info(object:bpy.types.Object, material_name:str, scene:b
             elif type == 3:
                 if getattr(origin, check_attr):
                     result = result + param
+
+            elif type == 4:
+                if getattr(origin, val_attr) > 0:
+                    result = result + param + "%02X" % getattr(origin, val_attr)
             
             return result
 
@@ -228,7 +233,7 @@ def write_file_material_info(object:bpy.types.Object, material_name:str, scene:b
     if mat_data.shift_x_0 != 0:
         result = result + "#ShiftS" + "%02d" % mat_data.shift_x_0
     if mat_data.shift_y_0 != 0:
-        result = result + "#ShiftT" + "%02d" % mat_data.shift_x_0
+        result = result + "#ShiftT" + "%02d" % mat_data.shift_y_0
 
     if mat_data.texel_format != "Auto":
         result = result + mat_data.texel_format
@@ -237,7 +242,7 @@ def write_file_material_info(object:bpy.types.Object, material_name:str, scene:b
         if mat_data.shift_x_1 != 0:
             result = result + "#MultiShiftS%02d" % mat_data.shift_x_1
         if mat_data.shift_y_1 != 0:
-            result = result + "#MultiShiftT%02d" % mat_data.shift_x_1
+            result = result + "#MultiShiftT%02d" % mat_data.shift_y_1
         result = result + "#MultiAlpha%02X" % mat_data.multi_alpha
 
     return result
@@ -775,11 +780,8 @@ def _write(
 
         # Exit edit mode before exporting, so current object states are exported properly.
 
-        mode = bpy.context.mode
-
-        if mode != "OBJECT":
-            if bpy.ops.object.mode_set.poll():
-                bpy.ops.object.mode_set(mode="OBJECT")
+        if bpy.ops.object.mode_set.poll():
+            bpy.ops.object.mode_set(mode="OBJECT")
 
         if EXPORT_SEL_ONLY:
             objects = context.selected_objects
@@ -810,9 +812,6 @@ def _write(
         )
         progress.leave_substeps()
 
-        if mode != "OBJECT":
-            if bpy.ops.object.mode_set.poll():
-                bpy.ops.object.mode_set(mode=mode)
 
 def save(
     context,

@@ -118,6 +118,8 @@ class Properties_Collision(bpy.types.PropertyGroup):
     ignore_actor: bpy.props.BoolProperty(default=False, name="Ignore Actor")
     ignore_proj: bpy.props.BoolProperty(default=False, name="Ignore Projectile")
 
+    echo: bpy.props.IntProperty(default=0, min=0, max=63, name="Echo")
+
 class Properties_Material(bpy.types.PropertyGroup):
     is_ocarina_material: bpy.props.BoolProperty(
         default=False,

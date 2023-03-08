@@ -21,7 +21,7 @@
 bl_info = {
     "name": "SharpOcarina Export",
     "author": "dr.doodongo, Dragorn421, Campbell Barton, Bastien Montagne",
-    "version": (1, 0, 3),
+    "version": (1, 0, 4),
     "blender": (3, 0, 0),
     "location": "File > Export",
     "description": "Sharp Ocarina Tag Manager",
