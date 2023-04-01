@@ -159,11 +159,8 @@ class UI_PT_Material(bpy.types.Panel):
                 row = box.row()
                 row.prop(xmaterial, "alpha_method", expand=True)
 
-                box.separator(factor=0.0)
-
                 sub_box = box.box()
                 sub_box.row().prop(xscene, "ui_material_tab", expand=True)
-                sub_box.separator(factor=0.0)
 
                 if xscene.ui_material_tab == "TEXTURE":
                     def default_texture_draw(box:bpy.types.UILayout, index):
@@ -175,14 +172,21 @@ class UI_PT_Material(bpy.types.Panel):
                         row.prop(xmaterial, "shift_x_" + index, text='')
                         row.prop(xmaterial, "shift_y_" + index, text='')
                     
+                    subsubbox = sub_box.box()
+                    if foldable_menu(subsubbox, xscene, "io_show_texel0"):
+                        default_texture_draw(subsubbox, "0")
+                    else:
+                        subsubbox.template_ID(xmaterial, "texture_0", open="image.open")
+
+                    subsubbox = sub_box.box()
+                    if foldable_menu(subsubbox, xscene, "io_show_texel1"):
+                        default_texture_draw(subsubbox, "1")
+                    else:
+                        subsubbox.template_ID(xmaterial, "texture_1", open="image.open")
+                        
                     sub_box.prop(xmaterial, "texel_format")
                     sub_box.prop(xmaterial, "multi_alpha", slider=True)
-                    if foldable_menu(sub_box, xscene, "io_show_texel0"):
-                        default_texture_draw(sub_box, "0")
-                    if foldable_menu(sub_box, xscene, "io_show_texel1"):
-                        default_texture_draw(sub_box, "1")
 
-                
                 elif xscene.ui_material_tab == "MATERIAL":
                     dependant_row_prop(sub_box, xmaterial, "is_animated", "segment")
                     sub_box.prop(xmaterial, "alpha", slider=True)
@@ -193,6 +197,7 @@ class UI_PT_Material(bpy.types.Panel):
                     row = sub_box.row()
                     row.prop(xmaterial, "pixelated")
                     row.prop(xmaterial, "decal")
+                
                 sub_box.separator(factor=0.0)
         
         if getattr(xmaterial, "is_collision") == True:

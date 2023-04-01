@@ -122,6 +122,8 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict, copy_textures):
                             )
                             fw("map_Ks %s\n" % repr(filepath)[1:-1])
 
+import time
+
 def write_file_material_info(object:bpy.types.Object, material_name:str, scene:bpy.types.Scene) -> str:
     if material_name == "None":
         return ""
@@ -505,21 +507,31 @@ def write_file(
                             uv_get = uv_dict.get
                             for f, f_index in face_index_pairs:
                                 uv_ls = uv_face_mapping[f_index] = []
+                                overflow = False
+                                uv_median = [ 0, 0 ]
+
                                 for uv_index, l_index in enumerate(f.loop_indices):
                                     uv = uv_layer[l_index].uv
-                                    # include the vertex index in the key so we don't share UV's between vertices,
-                                    # allowed by the OBJ spec but can cause issues for other importers, see: T47010.
 
-                                    # this works too, shared UV's for all verts
-                                    # ~ uv_key = veckey2d(uv)
+                                    if abs(uv[0]) > 15 or abs(uv[1]) > 15:
+                                        overflow = True
+                                    
+                                    uv_median[0] += uv[0]
+                                    uv_median[1] += uv[1]
+                                
+                                uv_median[0] = int(uv_median[0] / 3)
+                                uv_median[1] = int(uv_median[1] / 3)
+
+                                for uv_index, l_index in enumerate(f.loop_indices):
+                                    uv = uv_layer[l_index].uv
                                     uv_key = loops[l_index].vertex_index, veckey2d(uv)
-
-                                    uv_val = uv_get(uv_key)
-                                    if uv_val is None:
-                                        uv_val = uv_dict[uv_key] = uv_unique_count
-                                        fw("vt %.6f %.6f\n" % uv[:])
-                                        uv_unique_count += 1
-                                    uv_ls.append(uv_val)
+                                    if overflow == False:
+                                        fw("vt %.6f %.6f\n" % (uv[0], uv[1]))
+                                    else:
+                                        fw("vt %.6f %.6f\n" % (uv[0] - uv_median[0], uv[1] - uv_median[1]))
+                                    uv_dict[uv_key] = uv_unique_count
+                                    uv_ls.append(uv_unique_count)
+                                    uv_unique_count += 1
 
                             del (
                                 uv_dict,
@@ -665,7 +677,7 @@ def write_file(
 
                                     if EXPORT_GROUP_BY_MAT:
                                         # can be mat_image or (null)
-                                        fw("g %s_%s" % (obj_group_name_base,mat_data[0],))
+                                        fw("g SO%s_%s_%s" % (int(time.time()),obj_group_name_base,mat_data[0],))
 
                                         fw(write_file_material_info(ob, mat_data[0], scene))
 
