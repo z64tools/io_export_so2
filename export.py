@@ -125,14 +125,15 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict, copy_textures):
 import time
 
 def write_file_material_info(object:bpy.types.Object, material_name:str, scene:bpy.types.Scene) -> str:
-    if material_name == "None":
-        return ""
-
     result:str = ""
-    material = bpy.data.materials[material_name]
+    
+    material:bpy.types.Material = bpy.data.materials[material_name]
 
+    if material == None:
+        return result
     if hasattr(material, "ocarina") == False:
         return result
+
 
     mat_data:properties.Properties_Material = material.ocarina
     obj_data:properties.Properties_Object = object.ocarina
@@ -679,7 +680,7 @@ def write_file(
                                         # can be mat_image or (null)
                                         fw("g SO%s_%s_%s" % (int(time.time()),obj_group_name_base,mat_data[0],))
 
-                                        fw(write_file_material_info(ob, mat_data[0], scene))
+                                        fw(write_file_material_info(ob, material_names[f_mat], scene))
 
                                         fw("\n")
                                     if EXPORT_MTL:
