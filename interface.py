@@ -97,7 +97,6 @@ class UI_OT_MaterialInitializer(bpy.types.Operator):
         img = bpy.data.images.get(material.name)
         if img:
             mat_data.texture_0 = img
-        main
 
         set_object_properties(context=context)
 
