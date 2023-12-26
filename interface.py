@@ -94,9 +94,14 @@ class UI_OT_MaterialInitializer(bpy.types.Operator):
 
         # Use any texture having the same name as the
         # material, if there is one, for convenience.
-        img = bpy.data.images.get(material.name)
-        if img:
-            mat_data.texture_0 = img
+        # also we take care of removing the mtl_ prefix of io_import plugin
+
+        material_name = material.name.replace("mtl_", "")
+        for img in bpy.data.images:
+            if material_name in img.name:
+                mat_data.texture_0 = img
+                break
+
 
         set_object_properties(context=context)
 
