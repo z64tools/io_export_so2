@@ -127,7 +127,10 @@ import time
 def write_file_material_info(object:bpy.types.Object, material_name:str, scene:bpy.types.Scene) -> str:
     result:str = ""
     
-    material:bpy.types.Material = bpy.data.materials[material_name]
+    if material_name != None and bpy.data.materials != None and material_name in bpy.data.materials:
+        material:bpy.types.Material = bpy.data.materials[material_name]
+    else:
+        return result
 
     if material == None:
         return result
@@ -996,6 +999,7 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
         layout.prop(operator, "global_scale")
         layout.prop(operator, "path_mode")
         layout.prop(operator, "copy_textures")
+        layout.prop(operator, "group_by_material")
         layout.prop(operator, "group_name_use_collection")
         # pass
 
