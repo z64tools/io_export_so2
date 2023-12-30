@@ -278,9 +278,10 @@ def ensure_setup_and_get_nodes(material: bpy.types.Material):
 
     node_tree.links.new(nodes["SOVtxColMixer"].outputs[0], nodes["SOShader"].inputs["Base Color"])
     node_tree.links.new(nodes["SOAlphaAdjust"].outputs[1], nodes["SOShader"].inputs["Alpha"])
-    nodes["SOShader"].inputs["Roughness"].default_value = 0
-    if bpy.app.version >= (4, 0, 0):
-        nodes["SOShader"].inputs["IOR"].default_value = 1
+    if bpy.app.version < (4, 0, 0):
+        nodes["SOShader"].inputs["Specular"].default_value = 0
+    else:
+        nodes["SOShader"].inputs["Specular IOR Level"].default_value = 0
 
     node_tree.links.new(nodes["SOShader"].outputs[0], nodes["SOOutput"].inputs[0])
 
