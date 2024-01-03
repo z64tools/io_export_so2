@@ -10,7 +10,7 @@ class MaterialNodes:
     alpha: bpy.types.ShaderNodeMath
 
 def create_uv_group():
-    group = bpy.data.node_groups.get("SOUVGroup")
+    group: bpy.types.NodeTree = bpy.data.node_groups.get("SOUVGroup")
 
     if group == None:
         group = bpy.data.node_groups.new("SOUVGroup", "ShaderNodeTree")
@@ -26,16 +26,31 @@ def create_uv_group():
         return n
     
     def add_input(type, name):
-        n = group.inputs.get(name)
-        if n == None:
-            n = group.inputs.new(type, name)
+        # https://wiki.blender.org/wiki/Reference/Release_Notes/4.0/Python_API
+        if bpy.app.version < (4,0,0):
+            n = group.inputs.get(name)
+            if n == None:
+                n = group.inputs.new(type, name)
+        else:
+            n = group.interface.items_tree.get(name)
+            if n == None:
+                n = group.interface.new_socket(name, in_out="INPUT", socket_type=type)
+            assert isinstance(n, bpy.types.NodeTreeInterfaceSocket)
+            assert n.in_out == "INPUT"
 
         return n
     
     def add_output(type, name):
-        n = group.outputs.get(name)
-        if n == None:
-            n = group.outputs.new(type, name)
+        if bpy.app.version < (4,0,0):
+            n = group.outputs.get(name)
+            if n == None:
+                n = group.outputs.new(type, name)
+        else:
+            n = group.interface.items_tree.get(name)
+            if n == None:
+                n = group.interface.new_socket(name, in_out="OUTPUT", socket_type=type)
+            assert isinstance(n, bpy.types.NodeTreeInterfaceSocket)
+            assert n.in_out == "OUTPUT"
 
         return n
     
@@ -211,6 +226,8 @@ def ensure_setup_and_get_nodes(material: bpy.types.Material):
 
     data = {
          "SOOutput":      ( 300,    0, "ShaderNodeOutputMaterial", None),
+         # TODO it would be better to use a Diffuse shader and mix it with a transparent shader for alpha,
+         # rather than relying on the complicated BSDF Principled shader
          "SOShader":      (  50,    0, "ShaderNodeBsdfPrincipled", None),
          "SOTexel0":      (-500,    0, "ShaderNodeTexImage",       sodata_pixelated),
          "SOTexel1":      (-500, -200, "ShaderNodeTexImage",       sodata_pixelated),
@@ -259,9 +276,12 @@ def ensure_setup_and_get_nodes(material: bpy.types.Material):
 
     node_tree.links.new(nodes["SOAlpAlpMixer"].outputs[0], nodes["SOAlphaAdjust"].inputs[0])
 
-    node_tree.links.new(nodes["SOVtxColMixer"].outputs[0], nodes["SOShader"].inputs[0])
-    node_tree.links.new(nodes["SOAlphaAdjust"].outputs[1], nodes["SOShader"].inputs[21])
-    nodes["SOShader"].inputs[7].default_value = 0
+    node_tree.links.new(nodes["SOVtxColMixer"].outputs[0], nodes["SOShader"].inputs["Base Color"])
+    node_tree.links.new(nodes["SOAlphaAdjust"].outputs[1], nodes["SOShader"].inputs["Alpha"])
+    if bpy.app.version < (4, 0, 0):
+        nodes["SOShader"].inputs["Specular"].default_value = 0
+    else:
+        nodes["SOShader"].inputs["Specular IOR Level"].default_value = 0
 
     node_tree.links.new(nodes["SOShader"].outputs[0], nodes["SOOutput"].inputs[0])
 

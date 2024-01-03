@@ -60,6 +60,10 @@ def reload_all_modules(log=True):
             continue
 
         py_path = py_path.relative_to(addon_dir)
+
+        if py_path.parts[0] == ".venv":
+            continue
+
         if py_path.name == "__init__.py":
             n = "." + ".".join(py_path.parent.parts)
         else:
