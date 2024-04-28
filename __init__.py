@@ -21,7 +21,7 @@
 bl_info = {
     "name": "SharpOcarina Export",
     "author": "dr.doodong, Dragorn421, Nokaubure, Campbell Barton, Bastien Montagne",
-    "version": (1, 0, 7),
+    "version": (1, 0, 8),
     "blender": (3, 0, 0),
     "location": "File > Export",
     "description": "Sharp Ocarina Tag Manager",
@@ -60,6 +60,10 @@ def reload_all_modules(log=True):
             continue
 
         py_path = py_path.relative_to(addon_dir)
+
+        if py_path.parts[0] == ".venv":
+            continue
+
         if py_path.name == "__init__.py":
             n = "." + ".".join(py_path.parent.parts)
         else:
