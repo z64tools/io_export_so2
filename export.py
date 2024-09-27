@@ -264,8 +264,9 @@ def write_file(
     EXPORT_MTL=True,
     EXPORT_APPLY_MODIFIERS=True,
     EXPORT_GROUP_BY_OB=True,
-    EXPORT_GROUP_BY_MAT=False,
+    EXPORT_GROUP_BY_MAT=True,
     EXPORT_GROUP_NAME_USE_COLLECTION=True,
+    EXPORT_IGNORE_SO_GROUP_SETTINGS=False,
     EXPORT_KEEP_VERT_ORDER=False,
     EXPORT_POLYGROUPS=False,
     EXPORT_GLOBAL_MATRIX=None,
@@ -681,7 +682,10 @@ def write_file(
 
                                     if EXPORT_GROUP_BY_MAT:
                                         # can be mat_image or (null)
-                                        fw("g SO%s_%s_%s" % (int(time.time()),obj_group_name_base,mat_data[0],))
+                                        if EXPORT_IGNORE_SO_GROUP_SETTINGS:
+                                            fw("g SO%s_%s_%s" % (int(time.time()),obj_group_name_base,mat_data[0],))
+                                        else:
+                                            fw("g %s_%s" % (obj_group_name_base,mat_data[0],))
 
                                         fw(write_file_material_info(ob, material_names[f_mat], scene))
 
@@ -782,6 +786,7 @@ def _write(
     EXPORT_GROUP_BY_OB,
     EXPORT_GROUP_BY_MAT,
     EXPORT_GROUP_NAME_USE_COLLECTION,
+    EXPORT_IGNORE_SO_GROUP_SETTINGS,
     EXPORT_KEEP_VERT_ORDER,
     EXPORT_POLYGROUPS,
     EXPORT_SEL_ONLY,  # ok
@@ -819,6 +824,7 @@ def _write(
             EXPORT_GROUP_BY_OB,
             EXPORT_GROUP_BY_MAT,
             EXPORT_GROUP_NAME_USE_COLLECTION,
+            EXPORT_IGNORE_SO_GROUP_SETTINGS,
             EXPORT_KEEP_VERT_ORDER,
             EXPORT_POLYGROUPS,
             EXPORT_GLOBAL_MATRIX,
@@ -839,8 +845,9 @@ def save(
     use_materials=True,
     use_mesh_modifiers=True,
     group_by_object=True,
-    group_by_material=False,
+    group_by_material=True,
     group_name_use_collection=True,
+    ignore_SO_group_settings=False,
     keep_vertex_order=False,
     use_vertex_groups=False,
     use_selection=True,
@@ -863,6 +870,7 @@ def save(
         EXPORT_GROUP_BY_OB=group_by_object,
         EXPORT_GROUP_BY_MAT=group_by_material,
         EXPORT_GROUP_NAME_USE_COLLECTION=group_name_use_collection,
+        EXPORT_IGNORE_SO_GROUP_SETTINGS=ignore_SO_group_settings,
         EXPORT_KEEP_VERT_ORDER=keep_vertex_order,
         EXPORT_POLYGROUPS=use_vertex_groups,
         EXPORT_SEL_ONLY=use_selection,
@@ -934,12 +942,17 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
     group_by_material: BoolProperty(
         name="Material Groups",
         description="Generate an OBJ group for each part of a geometry using a different material",
-        default=False,
+        default=True,
     )
     group_name_use_collection: BoolProperty(
         name="Collection in Group Name",
         description="Put the collections the object belongs to in the OBJ group name",
         default=True,
+    )
+    ignore_SO_group_settings: BoolProperty(
+        name="Ignore SO Group Settings",
+        description="The changes made to the group settings in SO will be discarded on reloading this model",
+        default=False,
     )
     keep_vertex_order: BoolProperty(
         name="Keep Vertex Order",
@@ -1001,6 +1014,7 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
         layout.prop(operator, "copy_textures")
         layout.prop(operator, "group_by_material")
         layout.prop(operator, "group_name_use_collection")
+        layout.prop(operator, "ignore_SO_group_settings")
         # pass
 
 def menu_func_export(self, context):
