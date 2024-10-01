@@ -149,7 +149,7 @@ def write_file_material_info(object:bpy.types.Object, material_name:str, scene:b
             [ 0, "has_floor_flags",   "floor_flags",    "" ],
             [ 0, "has_special_flags", "special_flags",  "" ],
             [ 1, "conveyor_speed",    "conveyor_speed", "#Speed0" ],
-            [ 2, "has_camera",        "camera",         "#Camera" ],
+            [ 5, "has_camera",        "camera",         "#Camera" ],
             [ 2, "has_env",           "env",            "#IndoorEnv" ],
             [ 2, "has_exit",          "exit",           "#Exit" ],
             [ 4, "",                  "echo",           "#Echo" ],
@@ -182,6 +182,10 @@ def write_file_material_info(object:bpy.types.Object, material_name:str, scene:b
             elif type == 4:
                 if getattr(origin, val_attr) > 0:
                     result = result + param + "%02X" % getattr(origin, val_attr)
+
+            elif type == 5:
+                if getattr(origin, check_attr):
+                    result = result + param + "%01X" % getattr(origin, val_attr)
             
             return result
 
