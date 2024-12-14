@@ -112,6 +112,44 @@ class UI_OT_MaterialInitializer(bpy.types.Operator):
 
         return {'FINISHED'}
 
+class UI_OT_MassInit(bpy.types.Operator):
+    bl_idname = "ocarina.massinit"
+    bl_label = 'Mass Initialize'
+    bl_description = "Initializes SharpOcarina material on all materials in the scene"
+    bl_options = {"INTERNAL", "UNDO"}
+
+    def execute(self, context):
+
+            operator = bpy.ops.ocarina.material_initializer
+
+            if not bpy.context.object:
+                bpy.ops.mesh.primitive_cube_add(size=1)
+                temp_obj = bpy.context.object
+                temp_obj.name = "TempMaterialObject"
+            else:
+                temp_obj = bpy.context.object
+
+            original_materials = list(temp_obj.data.materials)
+
+            for mat in bpy.data.materials:
+                if not mat.users:
+                    continue
+
+                temp_obj.data.materials.clear()
+                temp_obj.data.materials.append(mat)
+
+                with bpy.context.temp_override(object=temp_obj, material=mat):
+                    operator()
+
+            temp_obj.data.materials.clear()
+            for mat in original_materials:
+                temp_obj.data.materials.append(mat)
+
+            if temp_obj.name == "TempMaterialObject":
+                bpy.data.objects.remove(temp_obj)
+
+            return {'FINISHED'}
+
 class UI_OT_Refresh(bpy.types.Operator):
     bl_idname = "ocarina.refresh"
     bl_label = 'Update Materials'
@@ -250,6 +288,7 @@ class UI_PT_3dview(bpy.types.Panel):
             obj_name = object.name
 
         box = self.layout.box()
+        box.operator('ocarina.massinit')
         box.operator('ocarina.refresh')
         box.operator("export_obj_so.export")
         box.label(text="Object: " + obj_name)
@@ -263,6 +302,7 @@ class UI_PT_3dview(bpy.types.Panel):
 classes = (
     UI_OT_MaterialInitializer,
     UI_OT_Refresh,
+    UI_OT_MassInit,
 
     UI_PT_Material,
     UI_PT_3dview,
