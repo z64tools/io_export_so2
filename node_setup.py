@@ -138,7 +138,7 @@ def sodata_alpha(node:bpy.types.ShaderNode, so_data):
     node.inputs[0].default_value = so_data.alpha / 255
 
 def sodata_multi_alpha(node:bpy.types.ShaderNode, so_data):
-    node.inputs[0].default_value = so_data.multi_alpha / 255
+    node.inputs[0].default_value = 1.0 if so_data.alpha_mask else so_data.multi_alpha / 255
 
 def sodata_pixelated(node:bpy.types.ShaderNode, so_data):
     if so_data.pixelated:
@@ -373,6 +373,12 @@ def on_material_update_pixelating(self, context):
     texel0: bpy.types.ShaderNodeTexImage
 
     sodata_pixelated(texel0, data)
+
+def on_material_update_alphamask(self, context):
+    material: bpy.types.Material = context.material
+    data = material.ocarina
+    node_tree = material.node_tree
+    sodata_multi_alpha(node_tree.nodes.get("SOTexAlpMixer"), data)
 
 def on_material_disable_mesh(self, context):
     material: bpy.types.Material = context.material

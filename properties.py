@@ -143,7 +143,23 @@ class Properties_Material(bpy.types.PropertyGroup):
     shift_x_1: bpy.props.IntProperty(name="ShiftX", default=0, min=-3, max=3, update=node_setup.on_material_update_shift)
     shift_y_1: bpy.props.IntProperty(name="ShiftY", default=0, min=-3, max=3, update=node_setup.on_material_update_shift)
 
-    texel_format: bpy.props.EnumProperty(
+    texel_format_0: bpy.props.EnumProperty(
+        items=[
+            ("Auto",    "Auto",   ""),
+            ("#RGBA16", "RGBA16", ""),
+            ("#RGBA32", "RGBA32", ""),
+            ("#CI4",    "CI4",    ""),
+            ("#CI8",    "CI8",    ""),
+            ("#I4",     "I4",     ""),
+            ("#I8",     "I8",     ""),
+            ("#IA8",    "IA8",    ""),
+            ("#IA16",   "IA16",   ""),
+        ],
+        name="Format",
+        default="Auto"
+    )
+
+    texel_format_1: bpy.props.EnumProperty(
         items=[
             ("Auto",    "Auto",   ""),
             ("#RGBA16", "RGBA16", ""),
@@ -332,6 +348,12 @@ class Properties_Material(bpy.types.PropertyGroup):
     ignore_fog: bpy.props.BoolProperty(name="Ignore Fog")
     pixelated: bpy.props.BoolProperty(name="Pixelated",update=node_setup.on_material_update_pixelating)
     decal: bpy.props.BoolProperty(name="Decal")
+    metallic: bpy.props.BoolProperty(name="Metallic")
+    env_color: bpy.props.BoolProperty(name="Env Color")
+    reverse_light: bpy.props.BoolProperty(name="Reverse Light")
+    billboard: bpy.props.BoolProperty(name="Billboard")
+    billboard2D: bpy.props.BoolProperty(name="2D Billboard")
+    alpha_mask: bpy.props.BoolProperty(name="Alpha Mask",update=node_setup.on_material_update_alphamask)
 
     label_alpha: bpy.props.BoolProperty(name="Alpha")
     label_shade: bpy.props.BoolProperty(name="Shade")

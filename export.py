@@ -121,6 +121,34 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict, copy_textures):
                                 image.library,
                             )
                             fw("map_Ks %s\n" % repr(filepath)[1:-1])
+                    tags_0 = ""
+                    tags_1 = ""
+                    if data.texture_0 is not None:
+                        if data.texel_format_0 != "Auto":
+                            tags_0 += data.texel_format_0
+                        if data.repeat_x_0 == "MIRROR":
+                            tags_0 += "#MirrorX"
+                        elif data.repeat_x_0 == "CLAMP":
+                            tags_0 += "#ClampX"
+                        if data.repeat_y_0 == "MIRROR":
+                            tags_0 += "#MirrorY"
+                        elif data.repeat_y_0 == "CLAMP":
+                            tags_0 += "#ClampY"
+                    if data.texture_1 is not None:
+                        if data.texel_format_1 != "Auto":
+                            tags_1 += data.texel_format_1
+                        if data.repeat_x_1 == "MIRROR":
+                            tags_1 += "#MirrorX"
+                        elif data.repeat_x_1 == "CLAMP":
+                            tags_1 += "#ClampX"
+                        if data.repeat_y_1 == "MIRROR":
+                            tags_1 += "#MirrorY"
+                        elif data.repeat_y_1 == "CLAMP":
+                            tags_1 += "#ClampY"
+                    if tags_0 != "":
+                        fw("tags_0 %s\n" % tags_0)
+                    if tags_1 != "":
+                        fw("tags_1 %s\n" % tags_1)
 
 import time
 
@@ -220,22 +248,30 @@ def write_file_material_info(object:bpy.types.Object, material_name:str, scene:b
 
     if mat_data.pixelated:
         result = (result + "#Pixelated")
+
+    if mat_data.metallic:
+        result = (result + "#Metallic")
+
+    if mat_data.alpha_mask:
+        result = (result + "#MaskAlpha")
+
+    if mat_data.env_color:
+        result = (result + "#EnvColor")
+
+    if mat_data.reverse_light:
+        result = (result + "#ReverseLight")
+
+    if mat_data.billboard:
+        result = (result + "#Billboard")
+
+    if mat_data.billboard2D:
+        result = (result + "#2DBillboard")
     
     if mat_data.alpha < 255 or mat_data.alpha_method == "BLEND":
         alpha = mat_data.alpha
         if alpha == 255:
             alpha = 254
         result = (result + "#Alpha%X" % alpha)
-
-    if mat_data.repeat_x_0 == "MIRROR":
-        result = (result + "#MirrorX")
-    elif mat_data.repeat_x_0 == "CLAMP":
-        result = (result + "#ClampX")
-
-    if mat_data.repeat_y_0 == "MIRROR":
-        result = (result + "#MirrorY")
-    elif mat_data.repeat_y_0 == "CLAMP":
-        result = (result + "#ClampY")
     
     if mat_data.is_animated:
         result = (result + "#%s" % str(mat_data.segment))
@@ -244,9 +280,6 @@ def write_file_material_info(object:bpy.types.Object, material_name:str, scene:b
         result = result + "#ShiftS" + "%02d" % mat_data.shift_x_0
     if mat_data.shift_y_0 != 0:
         result = result + "#ShiftT" + "%02d" % mat_data.shift_y_0
-
-    if mat_data.texel_format != "Auto":
-        result = result + mat_data.texel_format
 
     if mat_data.texture_1 != None:
         if mat_data.shift_x_1 != 0:

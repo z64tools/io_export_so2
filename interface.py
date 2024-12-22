@@ -75,7 +75,7 @@ class UI_OT_MaterialInitializer(bpy.types.Operator):
     bl_options = {"INTERNAL", "UNDO"}
 
     def execute(self, context):
-        material = context.material
+        material = mat = context.material
         object = context.object
         mat_data: properties.Properties_Material = material.ocarina
         obj_data: properties.Properties_Object = object.ocarina
@@ -85,6 +85,11 @@ class UI_OT_MaterialInitializer(bpy.types.Operator):
             swap_mode = True
             if bpy.ops.object.mode_set.poll():
                 bpy.ops.object.mode_set(mode="OBJECT")
+
+        #We remove Alpha attribute from Fast64 objects if it exists
+        if hasattr(object.data, 'attributes'):
+            if 'Alpha' in object.data.attributes:
+                object.data.attributes.remove(object.data.attributes['Alpha'])
 
         obj_data.is_ocarina_object = True
         mat_data.is_ocarina_material = True
@@ -109,6 +114,35 @@ class UI_OT_MaterialInitializer(bpy.types.Operator):
             if bpy.ops.object.mode_set.poll():
                 bpy.ops.object.mode_set(mode="EDIT")
 
+        #fast64 data transfer
+
+        if 'is_f3d' in mat and mat.is_f3d:
+
+            if mat.f3d_mat.tex0.tex_set:
+                mat.ocarina.texture_0 = mat.f3d_mat.tex0.tex
+                mat.ocarina.shift_x_0 = mat.f3d_mat.tex0.S.shift
+                mat.ocarina.shift_y_0 = mat.f3d_mat.tex0.T.shift
+                mat.ocarina.texel_format_0 = "#" + mat.f3d_mat.tex0.tex_format if mat.f3d_mat.tex0.tex_format != "IA4" else "Auto"
+            if mat.f3d_mat.tex1.tex_set:
+                mat.ocarina.texture_1 = mat.f3d_mat.tex1.tex
+                mat.ocarina.shift_x_1 = mat.f3d_mat.tex1.S.shift
+                mat.ocarina.shift_y_1 = mat.f3d_mat.tex1.T.shift
+                mat.ocarina.multi_alpha = int(mat.f3d_mat.env_color[3] * 255.0)
+                mat.ocarina.texel_format_1 = "#" + mat.f3d_mat.tex1.tex_format if mat.f3d_mat.tex1.tex_format != "IA4" else "Auto"
+            
+            if (mat.f3d_mat.set_prim):
+                mat.ocarina.alpha = int(mat.f3d_mat.prim_color[3] * 255.0)
+
+            mat.ocarina.alpha_method = "BLEND" if mat.f3d_mat.draw_layer.oot != "Opaque" else "CLIP"
+
+            mat.ocarina.repeat_x_0 = 'MIRROR' if mat.f3d_mat.tex0.S.mirror else ('CLAMP' if mat.f3d_mat.tex0.S.clamp else 'WRAP')
+            mat.ocarina.repeat_y_0 = 'MIRROR' if mat.f3d_mat.tex0.T.mirror else ('CLAMP' if mat.f3d_mat.tex0.T.clamp else 'WRAP')
+            mat.ocarina.repeat_x_1 = 'MIRROR' if mat.f3d_mat.tex1.S.mirror else ('CLAMP' if mat.f3d_mat.tex1.S.clamp else 'WRAP')
+            mat.ocarina.repeat_y_1 = 'MIRROR' if mat.f3d_mat.tex1.T.mirror else ('CLAMP' if mat.f3d_mat.tex1.T.clamp else 'WRAP')
+
+            mat.is_f3d = False
+            del mat['f3d_mat']
+
 
         return {'FINISHED'}
 
@@ -120,26 +154,28 @@ class UI_OT_MassInit(bpy.types.Operator):
 
     def execute(self, context):
 
-            operator = bpy.ops.ocarina.material_initializer
+          
+            bpy.ops.mesh.primitive_cube_add(size=1)
+            temp_obj = bpy.context.object
+            temp_obj.name = "TempMaterialObject"
 
-            if not bpy.context.object:
-                bpy.ops.mesh.primitive_cube_add(size=1)
-                temp_obj = bpy.context.object
-                temp_obj.name = "TempMaterialObject"
-            else:
-                temp_obj = bpy.context.object
 
             original_materials = list(temp_obj.data.materials)
 
             for mat in bpy.data.materials:
                 if not mat.users:
                     continue
+                # Detect if its already an SO mat
+                if 'ocarina' in mat and mat.ocarina.is_ocarina_material:
+                    continue
 
-                temp_obj.data.materials.clear()
-                temp_obj.data.materials.append(mat)
+                if len(temp_obj.data.materials) == 0:
+                    temp_obj.data.materials.append(mat)
+                else:
+                    temp_obj.data.materials[0] = mat 
 
                 with bpy.context.temp_override(object=temp_obj, material=mat):
-                    operator()
+                    bpy.ops.ocarina.material_initializer()
 
             temp_obj.data.materials.clear()
             for mat in original_materials:
@@ -147,6 +183,12 @@ class UI_OT_MassInit(bpy.types.Operator):
 
             if temp_obj.name == "TempMaterialObject":
                 bpy.data.objects.remove(temp_obj)
+
+            # We remove attribute Alpha from Fast64
+            for obj in bpy.context.scene.objects:
+                if hasattr(obj.data, 'attributes'):
+                    if 'Alpha' in obj.data.attributes:
+                        obj.data.attributes.remove(obj.data.attributes['Alpha'])
 
             return {'FINISHED'}
 
@@ -221,6 +263,8 @@ class UI_PT_Material(bpy.types.Panel):
                         row = box.row()
                         row.prop(xmaterial, "shift_x_" + index, text='')
                         row.prop(xmaterial, "shift_y_" + index, text='')
+                        row = box.row()
+                        sub_box.prop(xmaterial, "texel_format_" + index)
                     
                     subsubbox = sub_box.box()
                     if foldable_menu(subsubbox, xscene, "io_show_texel0"):
@@ -233,8 +277,7 @@ class UI_PT_Material(bpy.types.Panel):
                         default_texture_draw(subsubbox, "1")
                     else:
                         subsubbox.template_ID(xmaterial, "texture_1", open="image.open")
-                        
-                    sub_box.prop(xmaterial, "texel_format")
+
                     sub_box.prop(xmaterial, "multi_alpha", slider=True)
 
                 elif xscene.ui_material_tab == "MATERIAL":
@@ -247,6 +290,15 @@ class UI_PT_Material(bpy.types.Panel):
                     row = sub_box.row()
                     row.prop(xmaterial, "pixelated")
                     row.prop(xmaterial, "decal")
+                    row = sub_box.row()
+                    row.prop(xmaterial, "metallic")
+                    row.prop(xmaterial, "alpha_mask")
+                    row = sub_box.row()
+                    row.prop(xmaterial, "env_color")
+                    row.prop(xmaterial, "reverse_light")
+                    row = sub_box.row()
+                    row.prop(xmaterial, "billboard")
+                    row.prop(xmaterial, "billboard2D")
                 
                 sub_box.separator(factor=0.0)
         
