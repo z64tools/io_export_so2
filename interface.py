@@ -134,6 +134,7 @@ class UI_OT_MaterialInitializer(bpy.types.Operator):
                 mat.ocarina.alpha = int(mat.f3d_mat.prim_color[3] * 255.0)
 
             mat.ocarina.alpha_method = "BLEND" if mat.f3d_mat.draw_layer.oot != "Opaque" else "CLIP"
+            mat.ocarina.culling = mat.f3d_mat.rdp_settings.g_cull_back
 
             mat.ocarina.repeat_x_0 = 'MIRROR' if mat.f3d_mat.tex0.S.mirror else ('CLAMP' if mat.f3d_mat.tex0.S.clamp else 'WRAP')
             mat.ocarina.repeat_y_0 = 'MIRROR' if mat.f3d_mat.tex0.T.mirror else ('CLAMP' if mat.f3d_mat.tex0.T.clamp else 'WRAP')
