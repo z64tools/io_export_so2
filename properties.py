@@ -45,27 +45,41 @@ class Properties_Collision(bpy.types.PropertyGroup):
     has_floor_flags: bpy.props.BoolProperty(default=False,name="Floor")
     floor_flags: bpy.props.EnumProperty(
         items=[
-            ("#FLOORPROPERTY_VOID_SMALL",        "Small Void",        ""),
-            ("#FLOORPROPERTY_HANG_LEDGE",        "Hand Ledge",        ""),
-            ("#FLOORPROPERTY_STOP_AIR_MOMENTUM", "Stop Air Momentym", ""),
-            ("#FLOORPROPERTY_NO_LEDGE_JUMP",     "No Ledge Jump",     ""),
-            ("#FLOORPROPERTY_DIVE",              "Dive",              ""),
-            ("#FLOORPROPERTY_VOID",              "Void",              ""),
+            ("#FLOORPROPERTY_UNK01",             "Unk01",             "0x01"),
+            ("#FLOORPROPERTY_UNK02",             "Unk02",             "0x02"),
+            ("#FLOORPROPERTY_UNK03",             "Unk03",             "0x03"),
+            ("#FLOORPROPERTY_UNK04",             "Unk04",             "0x04"),
+            ("#FLOORPROPERTY_SMALL_VOID",        "Small Void",        "0x05"),
+            ("#FLOORPROPERTY_HANG_LEDGE",        "Hand Ledge",        "0x06"),
+            ("#FLOORPROPERTY_UNK07",             "Unk07",             "0x07"),
+            ("#FLOORPROPERTY_STOP_AIR_MOMENTUM", "Stop Air Momentum", "0x08"),
+            ("#FLOORPROPERTY_NO_LEDGE_JUMP",     "No Ledge Jump",     "0x09"),
+            ("#FLOORPROPERTY_UNK0A",             "Unk0A",             "0x0A"),
+            ("#FLOORPROPERTY_DIVE",              "Dive",              "0x0B"),
+            ("#FLOORPROPERTY_VOID",              "Void",              "0x0C"),
         ],
-        default="#FLOORPROPERTY_VOID_SMALL",
+        default="#FLOORPROPERTY_SMALL_VOID",
         name=""
     )
 
     has_wall_flags: bpy.props.BoolProperty(default=False,name="Wall")
     wall_flags: bpy.props.EnumProperty(
         items=[
-            ("#WALLPROPERTY_NO_LEDGE_GRAB", "No Ledge Grab", ""),
-            ("#WALLPROPERTY_LADDER",        "Ladder",        ""),
-            ("#WALLPROPERTY_LADDER_TOP",    "Ladder Top",    ""),
-            ("#WALLPROPERTY_VINE",          "Climbable",     ""),
-            ("#WALLPROPERTY_CRAWL_A",       "Crawl A",       ""),
-            ("#WALLPROPERTY_CRAWL_B",       "Crawl B",       ""),
-            ("#WALLPROPERTY_PUSH",          "Push",          ""),
+            ("#WALLPROPERTY_NO_LEDGE_GRAB", "No Ledge Grab", "0x01"),
+            ("#WALLPROPERTY_LADDER",        "Ladder",        "0x02"),
+            ("#WALLPROPERTY_LADDER_TOP",    "Ladder Top",    "0x03"),
+            ("#WALLPROPERTY_VINE",          "Climbable",     "0x04"),
+            ("#WALLPROPERTY_CRAWL_A",       "Crawl A",       "0x05"),
+            ("#WALLPROPERTY_CRAWL_B",       "Crawl B",       "0x06"),
+            ("#WALLPROPERTY_PUSH",          "Push",          "0x07"),
+            ("#WALLPROPERTY_UNK08",          "Unk08",          "0x08"),
+            ("#WALLPROPERTY_UNK09",          "Unk09",          "0x09"),
+            ("#WALLPROPERTY_UNK0A",          "Unk0A",          "0x0A"),
+            ("#WALLPROPERTY_UNK0B",          "Unk0B",          "0x0B"),
+            ("#WALLPROPERTY_UNK0C",          "Unk0C",          "0x0C"),
+            ("#WALLPROPERTY_UNK0D",          "Unk0D",          "0x0D"),
+            ("#WALLPROPERTY_UNK0E",          "Unk0E",          "0x0E"),
+            ("#WALLPROPERTY_UNK0F",          "Unk0F",          "0x0F"),
         ],
         default="#WALLPROPERTY_NO_LEDGE_GRAB",
         name=""
@@ -74,16 +88,18 @@ class Properties_Collision(bpy.types.PropertyGroup):
     has_special_flags: bpy.props.BoolProperty(default=False,name="Special")
     special_flags: bpy.props.EnumProperty(
         items=[
-            ("#FLOORSPECIAL_HURT_SPIKES",     "Hurt",              ""),
-            ("#FLOORSPECIAL_HURT_LAVA",       "Hurt (Lava)",       ""),
-            ("#FLOORSPECIAL_SAND",            "Sand",              ""),
-            ("#FLOORSPECIAL_SLIPPERY",        "Slippery",          ""),
-            ("#FLOORSPECIAL_NO_FALL_DAMAGE",  "No Fall Damage",    ""),
-            ("#FLOORSPECIAL_QUICKSAND",       "Quicksand",         ""),
-            ("#FLOORSPECIAL_JABU_WALL",       "Jabu Wall",         ""),
-            ("#FLOORSPECIAL_VOID_ON_CONTACT", "Void on Contact",   ""),
-            ("#FLOORSPECIAL_LINK_LOOK_UP",    "Look Up",           ""),
-            ("#FLOORSPECIAL_QUICKSAND_EPONA", "Quicksand (Epona)", ""),
+            ("#FLOORSPECIAL_UNK01",           "Unk01 (Cam related)", "0x01"),
+            ("#FLOORSPECIAL_HURT_SPIKES",     "Hurt",              "0x02"),
+            ("#FLOORSPECIAL_HURT_LAVA",       "Hurt (Lava)",       "0x03"),
+            ("#FLOORSPECIAL_SAND",            "Sand",              "0x04"),
+            ("#FLOORSPECIAL_SLIPPERY",        "Slippery",          "0x05"),
+            ("#FLOORSPECIAL_NO_FALL_DAMAGE",  "No Fall Damage",    "0x06"),
+            ("#FLOORSPECIAL_QUICKSAND",       "Quicksand",         "0x07"),
+            ("#FLOORSPECIAL_JABU_WALL",       "Jabu Wall",         "0x08"),
+            ("#FLOORSPECIAL_VOID_ON_CONTACT", "Void on Contact",   "0x09"),
+            ("#FLOORSPECIAL_LINK_LOOK_UP",    "Look Up",           "0x0A"),
+            ("#FLOORSPECIAL_QUICKSAND_EPONA", "Quicksand (Epona Crossable)", "0x0B"),
+            ("#FLOORSPECIAL_UNK0C",           "Unk0C",            "0x0C"),
         ],
         default="#FLOORSPECIAL_HURT_SPIKES",
         name=""
@@ -114,11 +130,16 @@ class Properties_Collision(bpy.types.PropertyGroup):
     waterstream: bpy.props.BoolProperty(default=False, name="Water Conveyor")
     hookshot: bpy.props.BoolProperty(default=False, name="Hookshot")
     steep: bpy.props.BoolProperty(default=False, name="Steep")
+    block_epona: bpy.props.BoolProperty(default=False, name="Block Epona")
+    priority: bpy.props.BoolProperty(default=False, name="Priority")
+    wall_damage: bpy.props.BoolProperty(default=False, name="Wall Damage")
     ignore_cam: bpy.props.BoolProperty(default=False, name="Ignore Cam")
     ignore_actor: bpy.props.BoolProperty(default=False, name="Ignore Actor")
     ignore_proj: bpy.props.BoolProperty(default=False, name="Ignore Projectile")
 
     echo: bpy.props.IntProperty(default=0, min=0, max=63, name="Echo")
+
+
 
 class Properties_Material(bpy.types.PropertyGroup):
     is_ocarina_material: bpy.props.BoolProperty(
@@ -152,6 +173,7 @@ class Properties_Material(bpy.types.PropertyGroup):
             ("#CI8",    "CI8",    ""),
             ("#I4",     "I4",     ""),
             ("#I8",     "I8",     ""),
+            ("#IA4",    "IA4",    ""),
             ("#IA8",    "IA8",    ""),
             ("#IA16",   "IA16",   ""),
         ],
@@ -168,6 +190,7 @@ class Properties_Material(bpy.types.PropertyGroup):
             ("#CI8",    "CI8",    ""),
             ("#I4",     "I4",     ""),
             ("#I8",     "I8",     ""),
+            ("#IA4",    "IA4",    ""),
             ("#IA8",    "IA8",    ""),
             ("#IA16",   "IA16",   ""),
         ],

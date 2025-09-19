@@ -177,12 +177,16 @@ def write_file_material_info(object:bpy.types.Object, material_name:str, scene:b
             [ 0, "has_floor_flags",   "floor_flags",    "" ],
             [ 0, "has_special_flags", "special_flags",  "" ],
             [ 1, "conveyor_speed",    "conveyor_speed", "#Speed0" ],
+            [ 6, "conveyor_speed",      "conveyor_dir",   "#Direction" ],
             [ 5, "has_camera",        "camera",         "#Camera" ],
             [ 2, "has_env",           "env",            "#IndoorEnv" ],
             [ 2, "has_exit",          "exit",           "#Exit" ],
             [ 4, "",                  "echo",           "#Echo" ],
             [ 3, "hookshot",          "",               "#Hookshot"],
             [ 3, "steep",             "",               "#Steep"],
+            [ 3, "block_epona",          "",               "#BlockEpona"],
+            [ 3, "priority",          "",               "#Priority"],
+            [ 3, "wall_damage",          "",               "#WallDamage"],
             [ 3, "ignore_cam",        "",               "#IgnoreCamera"],
             [ 3, "ignore_actor",      "",               "#IgnoreActors"],
             [ 3, "ignore_proj",       "",               "#IgnoreProjectiles"],
@@ -214,6 +218,10 @@ def write_file_material_info(object:bpy.types.Object, material_name:str, scene:b
             elif type == 5:
                 if getattr(origin, check_attr):
                     result = result + param + "%01X" % getattr(origin, val_attr)
+
+            elif type == 6:
+                if getattr(origin, check_attr) != "#Speed0":
+                    result = result + param + "%02X" % int(round(getattr(origin, val_attr) * 0x3F))
             
             return result
 
