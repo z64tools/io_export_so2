@@ -166,8 +166,8 @@ class UI_OT_MaterialInitializer(bpy.types.Operator):
                 if mat.ootCollisionProperty.exitID > 0:
                     mat.ocarina.collision.exit = mat.ootCollisionProperty.exitID-1
                     mat.ocarina.collision.has_exit = True
-                    mat.ocarina.collision.camera = mat.ootCollisionProperty.cameraID
-                    mat.ocarina.collision.has_camera = True
+                mat.ocarina.collision.camera = mat.ootCollisionProperty.cameraID
+                mat.ocarina.collision.has_camera = True
                 
                 if mat.ootCollisionProperty.conveyorOption != "None":
                     mat.ocarina.collision.conveyor_dir = (mat.ootCollisionProperty.conveyorRotation / (2 * 3.14159265359))
@@ -391,7 +391,8 @@ class UI_PT_3dview(bpy.types.Panel):
         box = self.layout.box()
         box.operator('ocarina.massinit')
         box.operator('ocarina.refresh')
-        box.operator("export_obj_so.export")
+        box.operator("export_obj_so.export").skip_dialog = True
+        box.prop(context.scene, "SO_last_export_path", text="Path")
         box.label(text="Object: " + obj_name)
 
         if object != None and object.type == 'MESH':

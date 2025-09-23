@@ -900,7 +900,8 @@ def save(
     use_selection=True,
     global_matrix=None,
     copy_textures=False,
-    path_mode="AUTO"
+    path_mode="AUTO",
+    skip_dialog=False
 ):
     
     if path_mode == "AUTO":
@@ -932,6 +933,7 @@ def save(
 class ExportOBJ(bpy.types.Operator, ExportHelper):
     bl_idname = "export_obj_so.export"
     bl_label = "Export OBJ SO"
+    bl_description = "Exports as SharpOcarina Object (.obj)"
     bl_options = {"PRESET"}
 
     filename_ext = ".obj"
@@ -939,6 +941,8 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
         default="*.obj",
         options={"HIDDEN"},
     )
+
+    skip_dialog: bpy.props.BoolProperty(default=False, options={"HIDDEN"})
 
     # context group
     use_selection: BoolProperty(
@@ -1046,7 +1050,25 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
         )
 
         keywords["global_matrix"] = global_matrix
-        return save(context, **keywords)
+
+        result = save(context, **keywords)
+
+        # Save the chosen filepath
+        context.scene.SO_last_export_path = bpy.path.relpath(self.filepath)
+
+        return result
+
+    def invoke(self, context, event):
+        # If textbox already filled -> bypass file browser
+        if self.skip_dialog and context.scene.SO_last_export_path:
+            self.filepath = bpy.path.abspath(context.scene.SO_last_export_path)
+            result = self.execute(context)
+            self.report({'INFO'}, f"Exported to {self.filepath}")
+            return result
+        else:
+            # No path stored yet -> open file browser as usual
+            return ExportHelper.invoke(self, context, event)
+
 
     def draw(self, context):
         layout = self.layout
@@ -1065,7 +1087,7 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
         # pass
 
 def menu_func_export(self, context):
-    self.layout.operator(ExportOBJ.bl_idname, text="SharpOcarina Object (.obj)")
+    self.layout.operator(ExportOBJ.bl_idname, text="SharpOcarina Object (.obj)").skip_dialog = False
 
 classes = (
     ExportOBJ,

@@ -1,5 +1,6 @@
 import bpy
 from . import node_setup
+from bpy.props import StringProperty
 
 class Properties_Scene(bpy.types.PropertyGroup):
     ui_show_collision_3d: bpy.props.BoolProperty(default=False, name="Collision")
@@ -21,22 +22,22 @@ class Properties_Scene(bpy.types.PropertyGroup):
 class Properties_Collision(bpy.types.PropertyGroup):
     sound_type: bpy.props.EnumProperty(
         items=[
-            ("#SFX_0",          "Dirt",          "0x00"),
-            ("#SFX_1",          "Sand",          "0x01"),
-            ("#SFX_2",          "Stone",         "0x02"),
-            ("#SFX_3",          "WetStone",      "0x03"),
-            ("#SFX_4",          "Water",         "0x04"),
-            ("#SFX_5",          "Shallow Water", "0x05"),
-            ("#SFX_6",          "Bush",          "0x06"),
-            ("#SFX_7",          "Lava",          "0x07"),
-            ("#SFX_8",          "Grass",         "0x08"),
-            ("#SFX_9",          "Plank Wood",    "0x09"),
-            ("#SFX_A",          "Wood",          "0x0A"),   
-            ("#SFX_C",          "Ice",           "0x0C"),
-            ("#SFX_D",          "Carpet",        "0x0D"),
-            ("#SFX_B",          "0x0B",          "0x0B"),
-            ("#SFX_E",          "0x0E",          "0x0E"),
-            ("#SFX_F",          "0x0F",          "0x0F"),
+            ("#SFX_0",          "Dirt",          ""),
+            ("#SFX_1",          "Sand",          ""),
+            ("#SFX_2",          "Stone",         ""),
+            ("#SFX_3",          "WetStone",      ""),
+            ("#SFX_4",          "Water",         ""),
+            ("#SFX_5",          "Shallow Water", ""),
+            ("#SFX_6",          "Bush",          ""),
+            ("#SFX_7",          "Lava",          ""),
+            ("#SFX_8",          "Grass",         ""),
+            ("#SFX_9",          "Plank Wood",    ""),
+            ("#SFX_A",          "Wood",          ""),  
+            ("#SFX_C",          "Ice",           ""),
+            ("#SFX_D",          "Carpet",        ""),
+            ("#SFX_B",          "~Unk B",      "Customize via code"),
+            ("#SFX_E",          "~Unk E",      "Customize via code"),
+            ("#SFX_F",          "~Unk F",       "Customize via code"),
         ],
         default="#SFX_2",
         name="Sound"
@@ -45,18 +46,18 @@ class Properties_Collision(bpy.types.PropertyGroup):
     has_floor_flags: bpy.props.BoolProperty(default=False,name="Floor")
     floor_flags: bpy.props.EnumProperty(
         items=[
-            ("#FLOORPROPERTY_UNK01",             "Unk01",             "0x01"),
-            ("#FLOORPROPERTY_UNK02",             "Unk02",             "0x02"),
-            ("#FLOORPROPERTY_UNK03",             "Unk03",             "0x03"),
-            ("#FLOORPROPERTY_UNK04",             "Unk04",             "0x04"),
-            ("#FLOORPROPERTY_SMALL_VOID",        "Small Void",        "0x05"),
-            ("#FLOORPROPERTY_HANG_LEDGE",        "Hand Ledge",        "0x06"),
-            ("#FLOORPROPERTY_UNK07",             "Unk07",             "0x07"),
-            ("#FLOORPROPERTY_STOP_AIR_MOMENTUM", "Stop Air Momentum", "0x08"),
-            ("#FLOORPROPERTY_NO_LEDGE_JUMP",     "No Ledge Jump",     "0x09"),
-            ("#FLOORPROPERTY_UNK0A",             "Unk0A",             "0x0A"),
-            ("#FLOORPROPERTY_DIVE",              "Dive",              "0x0B"),
-            ("#FLOORPROPERTY_VOID",              "Void",              "0x0C"),
+            ("#FLOORPROPERTY_SMALL_VOID",        "Small Void",        ""),
+            ("#FLOORPROPERTY_HANG_LEDGE",        "Hand Ledge",        ""),
+            ("#FLOORPROPERTY_STOP_AIR_MOMENTUM", "Stop Air Momentum", ""),
+            ("#FLOORPROPERTY_NO_LEDGE_JUMP",     "No Ledge Jump",     ""),
+            ("#FLOORPROPERTY_DIVE",              "Dive",              ""),
+            ("#FLOORPROPERTY_VOID",              "Void",              ""),
+            ("#FLOORPROPERTY_UNK01",             "~Unk 1",             ""),
+            ("#FLOORPROPERTY_UNK02",             "~Unk 2",             ""),
+            ("#FLOORPROPERTY_UNK03",             "~Unk 3",             ""),
+            ("#FLOORPROPERTY_UNK04",             "~Unk 4",             ""),
+            ("#FLOORPROPERTY_UNK07",             "~Unk 7",             ""),
+            ("#FLOORPROPERTY_UNK0A",             "~Unk A",             ""),
         ],
         default="#FLOORPROPERTY_SMALL_VOID",
         name=""
@@ -65,21 +66,21 @@ class Properties_Collision(bpy.types.PropertyGroup):
     has_wall_flags: bpy.props.BoolProperty(default=False,name="Wall")
     wall_flags: bpy.props.EnumProperty(
         items=[
-            ("#WALLPROPERTY_NO_LEDGE_GRAB", "No Ledge Grab", "0x01"),
-            ("#WALLPROPERTY_LADDER",        "Ladder",        "0x02"),
-            ("#WALLPROPERTY_LADDER_TOP",    "Ladder Top",    "0x03"),
-            ("#WALLPROPERTY_VINE",          "Climbable",     "0x04"),
-            ("#WALLPROPERTY_CRAWL_A",       "Crawl A",       "0x05"),
-            ("#WALLPROPERTY_CRAWL_B",       "Crawl B",       "0x06"),
-            ("#WALLPROPERTY_PUSH",          "Push",          "0x07"),
-            ("#WALLPROPERTY_UNK08",          "Unk08",          "0x08"),
-            ("#WALLPROPERTY_UNK09",          "Unk09",          "0x09"),
-            ("#WALLPROPERTY_UNK0A",          "Unk0A",          "0x0A"),
-            ("#WALLPROPERTY_UNK0B",          "Unk0B",          "0x0B"),
-            ("#WALLPROPERTY_UNK0C",          "Unk0C",          "0x0C"),
-            ("#WALLPROPERTY_UNK0D",          "Unk0D",          "0x0D"),
-            ("#WALLPROPERTY_UNK0E",          "Unk0E",          "0x0E"),
-            ("#WALLPROPERTY_UNK0F",          "Unk0F",          "0x0F"),
+            ("#WALLPROPERTY_NO_LEDGE_GRAB", "No Ledge Grab", ""),
+            ("#WALLPROPERTY_LADDER",        "Ladder",        ""),
+            ("#WALLPROPERTY_LADDER_TOP",    "Ladder Top",    ""),
+            ("#WALLPROPERTY_VINE",          "Climbable",     ""),
+            ("#WALLPROPERTY_CRAWL_A",       "Crawl A",       ""),
+            ("#WALLPROPERTY_CRAWL_B",       "Crawl B",       "No difference between A and B"),
+            ("#WALLPROPERTY_PUSH",          "Push",          ""),
+            ("#WALLPROPERTY_UNK08",          "~Unk 8",          ""),
+            ("#WALLPROPERTY_UNK09",          "~Unk 9",          ""),
+            ("#WALLPROPERTY_UNK0A",          "~Unk A",          ""),
+            ("#WALLPROPERTY_UNK0B",          "~Unk B",          ""),
+            ("#WALLPROPERTY_UNK0C",          "~Unk C",          ""),
+            ("#WALLPROPERTY_UNK0D",          "~Unk D",          ""),
+            ("#WALLPROPERTY_UNK0E",          "~Unk E",          ""),
+            ("#WALLPROPERTY_UNK0F",          "~Unk F",          ""),
         ],
         default="#WALLPROPERTY_NO_LEDGE_GRAB",
         name=""
@@ -88,18 +89,18 @@ class Properties_Collision(bpy.types.PropertyGroup):
     has_special_flags: bpy.props.BoolProperty(default=False,name="Special")
     special_flags: bpy.props.EnumProperty(
         items=[
-            ("#FLOORSPECIAL_UNK01",           "Unk01 (Cam related)", "0x01"),
-            ("#FLOORSPECIAL_HURT_SPIKES",     "Hurt",              "0x02"),
-            ("#FLOORSPECIAL_HURT_LAVA",       "Hurt (Lava)",       "0x03"),
-            ("#FLOORSPECIAL_SAND",            "Sand",              "0x04"),
-            ("#FLOORSPECIAL_SLIPPERY",        "Slippery",          "0x05"),
-            ("#FLOORSPECIAL_NO_FALL_DAMAGE",  "No Fall Damage",    "0x06"),
-            ("#FLOORSPECIAL_QUICKSAND",       "Quicksand",         "0x07"),
-            ("#FLOORSPECIAL_JABU_WALL",       "Jabu Wall",         "0x08"),
-            ("#FLOORSPECIAL_VOID_ON_CONTACT", "Void on Contact",   "0x09"),
-            ("#FLOORSPECIAL_LINK_LOOK_UP",    "Look Up",           "0x0A"),
-            ("#FLOORSPECIAL_QUICKSAND_EPONA", "Quicksand (Epona Crossable)", "0x0B"),
-            ("#FLOORSPECIAL_UNK0C",           "Unk0C",            "0x0C"),
+            ("#FLOORSPECIAL_UNK01",           "Haunted Wasteland", ""),
+            ("#FLOORSPECIAL_HURT_SPIKES",     "Hurt",              ""),
+            ("#FLOORSPECIAL_HURT_LAVA",       "Hurt (Lava)",       ""),
+            ("#FLOORSPECIAL_SAND",            "Sand",              ""),
+            ("#FLOORSPECIAL_SLIPPERY",        "Slippery",          ""),
+            ("#FLOORSPECIAL_NO_FALL_DAMAGE",  "No Fall Damage",    ""),
+            ("#FLOORSPECIAL_QUICKSAND",       "Quicksand",         ""),
+            ("#FLOORSPECIAL_JABU_WALL",       "Jabu Wall",         ""),
+            ("#FLOORSPECIAL_VOID_ON_CONTACT", "Void on Contact",   ""),
+            ("#FLOORSPECIAL_LINK_LOOK_UP",    "Look Up",           ""),
+            ("#FLOORSPECIAL_QUICKSAND_EPONA", "Quicksand (Epona Crossable)", ""),
+            ("#FLOORSPECIAL_UNK0C",           "~Unk C",            ""),
         ],
         default="#FLOORSPECIAL_HURT_SPIKES",
         name=""
@@ -404,10 +405,16 @@ def register():
     bpy.types.Scene.ocarina = bpy.props.PointerProperty(type=Properties_Scene)
     bpy.types.Material.ocarina = bpy.props.PointerProperty(type=Properties_Material)
     bpy.types.Object.ocarina = bpy.props.PointerProperty(type=Properties_Object)
+    bpy.types.Scene.SO_last_export_path = StringProperty(
+        name="Export Path",
+        description="Path used to automatically export the .obj, it autofills",
+        default=""
+    )
 
 def unregister():
     del bpy.types.Material.ocarina
     del bpy.types.Scene.ocarina
+    del bpy.types.Scene.SO_last_export_path
 
     for clazz in reversed(classes):
         bpy.utils.unregister_class(clazz)
