@@ -47,7 +47,7 @@ class Properties_Collision(bpy.types.PropertyGroup):
     floor_flags: bpy.props.EnumProperty(
         items=[
             ("#FLOORPROPERTY_SMALL_VOID",        "Small Void",        ""),
-            ("#FLOORPROPERTY_HANG_LEDGE",        "Hand Ledge",        ""),
+            ("#FLOORPROPERTY_HANG_LEDGE",        "Hang Ledge",        ""),
             ("#FLOORPROPERTY_STOP_AIR_MOMENTUM", "Stop Air Momentum", ""),
             ("#FLOORPROPERTY_NO_LEDGE_JUMP",     "No Ledge Jump",     ""),
             ("#FLOORPROPERTY_DIVE",              "Dive",              ""),

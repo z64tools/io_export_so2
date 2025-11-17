@@ -437,7 +437,9 @@ hex_sound_type = {
     "0x0D": "#SFX_D",
     "0x0E": "#SFX_E",
     "0x0F": "#SFX_F",
+    "Custom": "#SFX_0",
 }
+
 
 hex_floor_flags = {
     "0x01": "#FLOORPROPERTY_UNK01",

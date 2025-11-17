@@ -540,6 +540,24 @@ def write_file(
                         if EXPORT_GROUP_BY_OB:
                             fw("g %s\n" % obj_group_name_base)
 
+                        # Export pivot point if #Pivot is detected
+                        if "#Pivot" in obj_group_name_base:
+                            # Compute the object's origin in world space
+                            origin_world = ob.matrix_world.translation
+                            x, y, z = origin_world.x, origin_world.y, origin_world.z
+                            def clamp_short(v):
+                                v = round(v)
+                                return max(-32768, min(32767, v))
+
+                            x = clamp_short(x)
+                            y = clamp_short(y)
+                            z = clamp_short(z)
+
+                            pivot_str = f"#Pivot{x},{z},{y}#"
+
+                            obj_group_name_base = obj_group_name_base.replace("#Pivot", pivot_str)
+
+                            print(f"-----------obj_group_name_base: {obj_group_name_base}")
                         subprogress2.step()
 
                         # Vert
