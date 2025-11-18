@@ -181,6 +181,7 @@ def write_file_material_info(object:bpy.types.Object, material_name:str, scene:b
             [ 5, "has_camera",        "camera",         "#Camera" ],
             [ 2, "has_env",           "env",            "#IndoorEnv" ],
             [ 2, "has_exit",          "exit",           "#Exit" ],
+            [ 7, "has_polytype",        "polytype",         "#Polytype" ],
             [ 4, "",                  "echo",           "#Echo" ],
             [ 3, "hookshot",          "",               "#Hookshot"],
             [ 3, "steep",             "",               "#Steep"],
@@ -222,6 +223,10 @@ def write_file_material_info(object:bpy.types.Object, material_name:str, scene:b
             elif type == 6:
                 if getattr(origin, check_attr) != "#Speed0":
                     result = result + param + "%02X" % int(round(getattr(origin, val_attr) * 0x3F))
+
+            elif type == 7:
+                if getattr(origin, check_attr):
+                    result = result + param + "%d" % getattr(origin, val_attr)
             
             return result
 

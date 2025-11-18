@@ -31,6 +31,7 @@ def draw_collision_params(xcol:properties.Properties_Collision, box:bpy.types.UI
     dependant_row_prop(box, xcol, "has_exit", "exit")
     dependant_row_prop(box, xcol, "has_env", "env")
     dependant_row_prop(box, xcol, "has_camera", "camera")
+    dependant_row_prop(box, xcol, "has_polytype", "polytype")
     box.prop(xcol, "echo", slider=True)
     
     if not is_obj:

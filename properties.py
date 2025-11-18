@@ -115,6 +115,9 @@ class Properties_Collision(bpy.types.PropertyGroup):
     has_camera: bpy.props.BoolProperty(default=False,name="CameraID")
     camera: bpy.props.IntProperty(default=0,min=0,max=255,name="")
 
+    has_polytype: bpy.props.BoolProperty(default=False,name="PolytypeID")
+    polytype: bpy.props.IntProperty(default=0,min=0,max=255,name="")
+
     conveyor_dir: bpy.props.FloatProperty(default=0,min=0,max=1.0,name="Dir")
     conveyor_speed: bpy.props.EnumProperty(
         items=[
