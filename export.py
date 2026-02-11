@@ -393,6 +393,8 @@ def write_file(
 
             copy_set = set()
 
+            groupID = -1
+
             # Get all meshes
             subprogress1.enter_substeps(len(objects))
             for i, ob_main in enumerate(objects):
@@ -403,6 +405,8 @@ def write_file(
                 }:
                     subprogress1.step("Ignoring %s, dupli child..." % ob_main.name)
                     continue
+
+                groupID += 1
 
                 if EXPORT_GROUP_NAME_USE_COLLECTION:
                     next_explore_collections = [scene.collection]
@@ -712,7 +716,7 @@ def write_file(
                                     # Write a null material, since we know the context has changed.
                                     if EXPORT_GROUP_BY_MAT:
                                         # can be mat_image or (null)
-                                        fw("g %s\n" % obj_group_name_base)
+                                        fw("g %s\n" % (obj_group_name_base))
                                     if EXPORT_MTL:
                                         fw("usemtl (null)\n")  # mat, image
 
@@ -753,9 +757,9 @@ def write_file(
                                     if EXPORT_GROUP_BY_MAT:
                                         # can be mat_image or (null)
                                         if EXPORT_IGNORE_SO_GROUP_SETTINGS:
-                                            fw("g SO%s_%s_%s" % (int(time.time()),obj_group_name_base,mat_data[0],))
+                                            fw("g SO%s_%s_%s#Group%d" % (int(time.time()),obj_group_name_base,mat_data[0],groupID))
                                         else:
-                                            fw("g %s_%s" % (obj_group_name_base,mat_data[0],))
+                                            fw("g %s_%s#Group%d" % (obj_group_name_base,mat_data[0],groupID))
 
                                         fw(write_file_material_info(ob, material_names[f_mat], scene))
 
