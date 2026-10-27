@@ -592,7 +592,7 @@ def write_file(
                                 for uv_index, l_index in enumerate(f.loop_indices):
                                     uv = uv_layer[l_index].uv
 
-                                    if abs(uv[0]) > 15 or abs(uv[1]) > 15:
+                                    if abs(uv[0]) > 32 or abs(uv[1]) > 32:
                                         overflow = True
                                     
                                     uv_median[0] += uv[0]
