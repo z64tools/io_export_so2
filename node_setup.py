@@ -1,6 +1,75 @@
 import bpy
 import os
 
+
+_preview_materials = {}
+
+
+def _texture_signature(material):
+    nodes = material.node_tree.nodes
+    textures = []
+    for slot in (0, 1):
+        image = getattr(nodes.get("SOTexel" + str(slot)), "image", None)
+        textures.append((image, tuple(image.size) if image else (0, 0)))
+    return tuple(textures)
+
+
+def sync_mirror_preview(material):
+    """Update only generated UV groups; preserve material settings and links."""
+    if material.library or not material.node_tree:
+        return
+    signature = _texture_signature(material)
+    for slot, (image, size) in enumerate(signature):
+        uv = material.node_tree.nodes.get("UV" + str(slot))
+        if (not uv or not uv.node_tree or uv.node_tree.library
+                or not uv.node_tree.nodes.get("UVMirrorX")):
+            continue
+        if uv.node_tree.get("so_mirror_preview", 0) < 1:
+            create_uv_group(uv.node_tree)
+        for name, length in zip(("TextureWidth", "TextureHeight"), size):
+            socket = uv.inputs.get(name)
+            if socket and socket.default_value != max(length, 1):
+                socket.default_value = max(length, 1)
+    _preview_materials[material] = signature
+
+
+def poll_mirror_preview():
+    # Two texture slots per tracked material, independent of scene movement.
+    # Also catches Image.scale/reload, which may emit no depsgraph event.
+    for material, previous in tuple(_preview_materials.items()):
+        try:
+            if not material.node_tree or not material.ocarina.is_ocarina_material:
+                _preview_materials.pop(material, None)
+            elif _texture_signature(material) != previous:
+                sync_mirror_preview(material)
+        except ReferenceError:
+            _preview_materials.pop(material, None)
+    return 0.5
+
+
+@bpy.app.handlers.persistent
+def refresh_mirror_previews(*args):
+    _preview_materials.clear()
+    for material in bpy.data.materials:
+        if material.ocarina.is_ocarina_material:
+            sync_mirror_preview(material)
+
+
+def register():
+    refresh_mirror_previews()
+    bpy.app.handlers.load_post.append(refresh_mirror_previews)
+    bpy.app.handlers.render_pre.append(refresh_mirror_previews)
+    bpy.app.timers.register(poll_mirror_preview, first_interval=0.5, persistent=True)
+
+
+def unregister():
+    for handlers in (bpy.app.handlers.load_post, bpy.app.handlers.render_pre):
+        if refresh_mirror_previews in handlers:
+            handlers.remove(refresh_mirror_previews)
+    if bpy.app.timers.is_registered(poll_mirror_preview):
+        bpy.app.timers.unregister(poll_mirror_preview)
+    _preview_materials.clear()
+
 class MaterialNodes:
     shader: bpy.types.ShaderNodeBsdfPrincipled
     texel0: bpy.types.ShaderNodeTexImage
@@ -9,8 +78,9 @@ class MaterialNodes:
     uv1: bpy.types.ShaderNodeGroup
     alpha: bpy.types.ShaderNodeMath
 
-def create_uv_group():
-    group: bpy.types.NodeTree = bpy.data.node_groups.get("SOUVGroup")
+def create_uv_group(group=None):
+    if group is None:
+        group = bpy.data.node_groups.get("SOUVGroup")
 
     if group == None:
         group = bpy.data.node_groups.new("SOUVGroup", "ShaderNodeTree")
@@ -60,21 +130,52 @@ def create_uv_group():
     add_input("NodeSocketFloat", "StateY")
     shf = add_input("NodeSocketFloat", "ShiftX")
     shf = add_input("NodeSocketFloat", "ShiftY")
+    for name in ("TextureWidth", "TextureHeight"):
+        size = add_input("NodeSocketFloat", name)
+        size.default_value = 1
+        size.min_value = 1
     add_output("NodeSocketVector", "Normal")
     
     uvmap = add_node("UVMap", "ShaderNodeUVMap", -500, -100)
     sepa = add_node("UVSeparator", "ShaderNodeSeparateXYZ", -300, 0)
     group.links.new(uvmap.outputs[0], sepa.inputs[0])
 
+    # Shift is a texture-coordinate scale; apply it before mirroring so each
+    # scaled tile has the same edge filtering as an unshifted tile.
+    shfx = add_node("UVShiftX", "ShaderNodeMath", -200, 600)
+    shfy = add_node("UVShiftY", "ShaderNodeMath", -200, 450)
+    for node, index in ((shfx, 0), (shfy, 1)):
+        node.operation = "MULTIPLY"
+        group.links.new(sepa.outputs[index], node.inputs[1])
+        group.links.new(inputs.outputs[index + 2], node.inputs[0])
+
     mirx = add_node("UVMirrorX", "ShaderNodeMath", -100, 300)
     mirx.operation = "PINGPONG"
     mirx.inputs[1].default_value = 1
-    group.links.new(sepa.outputs[0], mirx.inputs[0])
+    group.links.new(shfx.outputs[0], mirx.inputs[0])
 
     miry = add_node("UVMirrorY", "ShaderNodeMath", -100, 150)
     miry.operation = "PINGPONG"
     miry.inputs[1].default_value = 1
-    group.links.new(sepa.outputs[1], miry.inputs[0])
+    group.links.new(shfy.outputs[0], miry.inputs[0])
+
+    safe_mirror = []
+    for axis, mirror, size in (("X", mirx, "TextureWidth"), ("Y", miry, "TextureHeight")):
+        y = 900 if axis == "X" else 1100
+        margin = add_node("UVMargin" + axis, "ShaderNodeMath", -300, y)
+        margin.operation = "DIVIDE"
+        margin.inputs[0].default_value = 0.5
+        group.links.new(inputs.outputs[size], margin.inputs[1])
+        upper = add_node("UVUpper" + axis, "ShaderNodeMath", -100, y)
+        upper.operation = "SUBTRACT"
+        upper.inputs[0].default_value = 1
+        group.links.new(margin.outputs[0], upper.inputs[1])
+        safe = add_node("UVMirrorClamp" + axis, "ShaderNodeClamp", 75, y)
+        safe.clamp_type = "MINMAX"
+        group.links.new(mirror.outputs[0], safe.inputs["Value"])
+        group.links.new(margin.outputs[0], safe.inputs["Min"])
+        group.links.new(upper.outputs[0], safe.inputs["Max"])
+        safe_mirror.append(safe)
 
     clmx = add_node("UVClampX", "ShaderNodeClamp", -100, 0)
     clmx.clamp_type = "MINMAX"
@@ -92,45 +193,45 @@ def create_uv_group():
     mapmirx.inputs["From Min"].default_value = 0
     mapmirx.inputs["From Max"].default_value = 1
     group.links.new(inputs.outputs[0], mapmirx.inputs[0])
-    group.links.new(sepa.outputs[0], mapmirx.inputs["To Min"])
-    group.links.new(mirx.outputs[0], mapmirx.inputs["To Max"])
+    group.links.new(shfx.outputs[0], mapmirx.inputs["To Min"])
+    group.links.new(safe_mirror[0].outputs[0], mapmirx.inputs["To Max"])
 
     mapmiry = add_node("UVMapMirrorY", "ShaderNodeMapRange", 75, 0)
     mapmiry.inputs["From Min"].default_value = 0
     mapmiry.inputs["From Max"].default_value = 1
     group.links.new(inputs.outputs[1], mapmiry.inputs[0])
-    group.links.new(sepa.outputs[1], mapmiry.inputs["To Min"])
-    group.links.new(miry.outputs[0], mapmiry.inputs["To Max"])
+    group.links.new(shfy.outputs[0], mapmiry.inputs["To Min"])
+    group.links.new(safe_mirror[1].outputs[0], mapmiry.inputs["To Max"])
+
+    # Preserve the existing clamp-then-shift behavior for CLAMP mode.
+    shifted_clamp = []
+    for axis, clamp, index in (("X", clmx, 0), ("Y", clmy, 1)):
+        node = add_node("UVClampShift" + axis, "ShaderNodeMath", 75, -300 - index * 150)
+        node.operation = "MULTIPLY"
+        group.links.new(clamp.outputs[0], node.inputs[0])
+        group.links.new(inputs.outputs[index + 2], node.inputs[1])
+        shifted_clamp.append(node)
 
     mapclmx = add_node("UVMapClampX", "ShaderNodeMapRange", 225, 300)
     mapclmx.inputs["From Min"].default_value = 1
     mapclmx.inputs["From Max"].default_value = 2
     group.links.new(inputs.outputs[0], mapclmx.inputs[0])
     group.links.new(mapmirx.outputs[0], mapclmx.inputs["To Min"])
-    group.links.new(clmx.outputs[0], mapclmx.inputs["To Max"])
+    group.links.new(shifted_clamp[0].outputs[0], mapclmx.inputs["To Max"])
     
     mapclmy = add_node("UVMapClampY", "ShaderNodeMapRange", 225, 0)
     mapclmy.inputs["From Min"].default_value = 1
     mapclmy.inputs["From Max"].default_value = 2
     group.links.new(inputs.outputs[1], mapclmy.inputs[0])
     group.links.new(mapmiry.outputs[0], mapclmy.inputs["To Min"])
-    group.links.new(clmy.outputs[0], mapclmy.inputs["To Max"])
-
-    shfx = add_node("UVShiftX", "ShaderNodeMath", 400, 150)
-    shfx.operation = "MULTIPLY"
-    group.links.new(mapclmx.outputs[0], shfx.inputs[1])
-    group.links.new(inputs.outputs[2], shfx.inputs[0])
-
-    shfy = add_node("UVShiftY", "ShaderNodeMath", 400, 0)
-    shfy.operation = "MULTIPLY"
-    group.links.new(mapclmy.outputs[0], shfy.inputs[1])
-    group.links.new(inputs.outputs[3], shfy.inputs[0])
+    group.links.new(shifted_clamp[1].outputs[0], mapclmy.inputs["To Max"])
 
     combiner = add_node("UVCombiner", "ShaderNodeCombineXYZ", 575, 0)
-    group.links.new(shfx.outputs[0], combiner.inputs[0])
-    group.links.new(shfy.outputs[0], combiner.inputs[1])
+    group.links.new(mapclmx.outputs[0], combiner.inputs[0])
+    group.links.new(mapclmy.outputs[0], combiner.inputs[1])
 
     group.links.new(combiner.outputs[0], outputs.inputs[0])
+    group["so_mirror_preview"] = 1
 
  # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -309,6 +410,7 @@ def set_simple_material(mat: bpy.types.Material):
     set_simple_material_image(mat, nodes, data)
 
     set_simple_material_uv_repeats(nodes, data)
+    sync_mirror_preview(mat)
 
 def set_simple_material_image(mat:bpy.types.Material, nodes:MaterialNodes, data):
     nodes.texel0.image = data.texture_0

@@ -36,6 +36,7 @@ from pathlib import Path
 from . import export
 from . import properties
 from . import interface
+from . import node_setup
 
 def reload_all_modules(log=True):
     global modules
@@ -61,7 +62,7 @@ def reload_all_modules(log=True):
 
         py_path = py_path.relative_to(addon_dir)
 
-        if py_path.parts[0] == ".venv":
+        if py_path.parts[0] in {".venv", ".tmp", "tests"}:
             continue
 
         if py_path.name == "__init__.py":
@@ -88,11 +89,13 @@ def register():
     export.register()
     properties.register()
     interface.register()
+    node_setup.register()
 
     print("OK!")
 
 
 def unregister():
+    node_setup.unregister()
     export.unregister()
     properties.unregister()
     interface.unregister()
